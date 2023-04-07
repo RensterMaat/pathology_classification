@@ -8,8 +8,8 @@ class Model(pl.LightningModule):
 
     def forward(self, x):
         return self.model(x)
-    
-    def setup(self, stage='fit'):
+
+    def setup(self, stage="fit"):
         pass
 
     def training_step(self, batch, batch_idx):
