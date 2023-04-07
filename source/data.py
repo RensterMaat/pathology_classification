@@ -5,13 +5,21 @@ from torch.utils.data import DataLoader, Dataset
 
 class PreextractedFeatureDataset(Dataset):
     def __init__(self, manifest_path, config):
-        pass
+        manifest = pd.read_csv(manifest_path)
+        
+        self.target = config['target'] if 'target' in config.keys() else 'label'
+        self.data = manifest[['slide_id', self.target]]
+
+        self.transform = 
 
     def __len__(self):
-        pass
+        return len(self.data)
 
     def __getitem__(self, ix):
-        pass
+        case = self.data.iloc[ix]
+        x,y = case['slide_id'], int(case[self.target])
+
+        return self.transform(x), y
 
 
 class DataModule(pl.LightningDataModule):
