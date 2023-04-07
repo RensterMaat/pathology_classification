@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, Dataset
 
 
 class PreextractedFeatureDataset(Dataset):
-    def __init__(self, manifest_path):
+    def __init__(self, manifest_path, config):
         pass
 
     def __len__(self):
@@ -15,7 +15,7 @@ class PreextractedFeatureDataset(Dataset):
 
 
 class DataModule(pl.LightningDataModule):
-    def __init__(self, train_manifest_path, val_manifest_path, test_manifest_path=None):
+    def __init__(self, manifest_directory, config):
         pass
 
     def setup(self, stage="fit"):
