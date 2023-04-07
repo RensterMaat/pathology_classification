@@ -24,9 +24,6 @@ class Model(pl.LightningModule):
     def configure_optimizers():
         pass
 
-    def get_heatmap(self, x):
-        return self.model.get_heatmap(x)
-
 
 class NaivePoolingClassifier(nn.Module):
     def __init__(self, config):
