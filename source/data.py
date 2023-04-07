@@ -1,3 +1,4 @@
+import torch
 import pandas as pd
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, Dataset
@@ -10,8 +11,6 @@ class PreextractedFeatureDataset(Dataset):
         self.target = config['target'] if 'target' in config.keys() else 'label'
         self.data = manifest[['slide_id', self.target]]
 
-        self.transform = 
-
     def __len__(self):
         return len(self.data)
 
@@ -19,7 +18,7 @@ class PreextractedFeatureDataset(Dataset):
         case = self.data.iloc[ix]
         x,y = case['slide_id'], int(case[self.target])
 
-        return self.transform(x), y
+        return torch.load(x), torch.tensor(y)
 
 
 class DataModule(pl.LightningDataModule):
