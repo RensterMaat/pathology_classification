@@ -9,18 +9,22 @@ from torch.utils.data import DataLoader, Dataset
 class PreextractedFeatureDataset(Dataset):
     def __init__(self, manifest_path: os.PathLike, config: dict) -> None:
         manifest = pd.read_csv(manifest_path)
+        self.config = config
 
         self.target = config["target"] if "target" in config.keys() else "label"
-        self.data = manifest[["slide_id", self.target]]
+        self.data = manifest[["slide_path", self.target]]
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, ix: int) -> tuple[torch.Tensor]:
         case = self.data.iloc[ix]
-        x, y = case["slide_id"], int(case[self.target])
 
-        return torch.load(x), torch.tensor(y)
+        x = torch.load(case["slide_path"]).float()
+        y = torch.zeros((1, self.config['n_classes'])).float()
+        y[:, int(case[self.target])] = 1
+
+        return x, y
 
 
 class DataModule(pl.LightningDataModule):

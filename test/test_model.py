@@ -22,6 +22,4 @@ def test_naive_pooling_classifier():
 
     model = NaivePoolingClassifier(config)
 
-    y_hat = model.forward(x)
-    # y_hat, heatmap = model.forward(x, return_heatmap=True)
-    print()
+    y_hat, heatmap = model.forward(x, return_heatmap=True)

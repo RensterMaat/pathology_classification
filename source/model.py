@@ -62,10 +62,11 @@ class NaivePoolingClassifier(Classifier):
         return slide_prediction
 
 
-class AttentionClassifier(nn.Module):
-    def __init__(self, config):
+class AttentionClassifier(Classifier):
+    def __init__(self, config: dict) -> None:
         super().__init__()
-        pass
+        
+        
 
     def forward(self, x):
         pass

@@ -2,7 +2,7 @@ from source.data import PreextractedFeatureDataset, DataModule
 
 
 def test_dataset():
-    config = {"target": "label"}
+    config = {"target": "label", 'n_classes':3}
 
     dataset = PreextractedFeatureDataset(
         "/mnt/hpc/rens/hipt/data/fold_dir_test/fold_0/train.csv", config
@@ -12,7 +12,7 @@ def test_dataset():
 
 
 def test_datamodule():
-    config = {"target": "label", "num_workers": 1}
+    config = {"target": "label", 'n_classes':3, "num_workers": 1}
 
     datamodule = DataModule("/mnt/hpc/rens/hipt/data/fold_dir_test/fold_0", config)
 
