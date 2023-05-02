@@ -31,6 +31,7 @@ class PreextractedFeatureDataset(Dataset):
 
 class DataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
+        super().__init__()
         self.manifest_directory = Path(config["manifest_dir"])
         self.config = config
 

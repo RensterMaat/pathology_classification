@@ -5,25 +5,46 @@ import pytorch_lightning as pl
 
 class Model(pl.LightningModule):
     def __init__(self, config):
-        pass
+        super().__init__()
+
+        self.config = config
+
+        if config["model"] == "NaivePoolingClassifier":
+            self.model = NaivePoolingClassifier(config)
+        else:
+            raise NotImplementedError
+
+        self.criterion = nn.BCELoss()
 
     def forward(self, x):
         return self.model(x)
 
-    def setup(self, stage="fit"):
-        pass
-
     def training_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_hat = self.model(x)
+
+        loss = self.criterion(y_hat, y[0])
+
+        return loss
 
     def validation_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_hat = self.model(x)
+
+        loss = self.criterion(y_hat, y[0])
+
+        return loss
 
     def test_step(self, batch, batch_idx):
         pass
 
-    def configure_optimizers():
-        pass
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(
+            self.parameters(),
+            lr=float(self.config["learning_rate"]),
+            weight_decay=float(self.config["weight_decay"]),
+        )
+        return optimizer
 
 
 class Classifier(nn.Module):
@@ -52,7 +73,7 @@ class NaivePoolingClassifier(Classifier):
             raise NotImplementedError
 
     def forward(self, x: torch.Tensor, return_heatmap: bool = False) -> torch.Tensor:
-        per_patch_prediction = self.classifier(x)
+        per_patch_prediction = self.classifier(x[0])
         logits = torch.t(self.pooling(torch.t(per_patch_prediction)))
         slide_prediction = self.final_activation(logits)
 
@@ -65,8 +86,6 @@ class NaivePoolingClassifier(Classifier):
 class AttentionClassifier(Classifier):
     def __init__(self, config: dict) -> None:
         super().__init__()
-        
-        
 
     def forward(self, x):
         pass
