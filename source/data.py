@@ -12,7 +12,7 @@ class PreextractedFeatureDataset(Dataset):
         self.config = config
 
         self.target = config["target"] if "target" in config.keys() else "label"
-        self.data = manifest[["slide_path", self.target]]
+        self.data = manifest[["slide_id", self.target]]
 
     def __len__(self) -> int:
         return len(self.data)
@@ -20,16 +20,18 @@ class PreextractedFeatureDataset(Dataset):
     def __getitem__(self, ix: int) -> tuple[torch.Tensor]:
         case = self.data.iloc[ix]
 
-        x = torch.load(case["slide_path"]).float()
-        y = torch.zeros((1, self.config['n_classes'])).float()
+        x = torch.load(
+            Path(self.config["features_dir"]) / (case["slide_id"] + ".pt")
+        ).float()
+        y = torch.zeros((1, self.config["n_classes"])).float()
         y[:, int(case[self.target])] = 1
 
         return x, y
 
 
 class DataModule(pl.LightningDataModule):
-    def __init__(self, manifest_directory: os.PathLike, config: dict) -> None:
-        self.manifest_directory = Path(manifest_directory)
+    def __init__(self, config: dict) -> None:
+        self.manifest_directory = Path(config["manifest_dir"])
         self.config = config
 
     def setup(self, stage="fit") -> None:
@@ -38,7 +40,7 @@ class DataModule(pl.LightningDataModule):
                 self.manifest_directory / "train.csv", self.config
             )
             self.val_dataset = PreextractedFeatureDataset(
-                self.manifest_directory / "val.csv", self.config
+                self.manifest_directory / "tune.csv", self.config
             )
 
         if stage == "test":

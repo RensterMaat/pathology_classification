@@ -1,3 +1,5 @@
+from pathlib import Path
+import yaml
 from source.model import (
     NaivePoolingClassifier,
     AttentionClassifier,
@@ -7,16 +9,13 @@ from source.model import (
 from source.data import PreextractedFeatureDataset, DataModule
 
 
+with open("config/test.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+
 def test_naive_pooling_classifier():
-    config = {
-        "target": "label",
-        "n_features": 192,
-        "n_classes": 3,
-        "pooling_function": "max",
-        "final_activation": "softmax",
-    }
     dataset = PreextractedFeatureDataset(
-        "/mnt/hpc/rens/hipt/data/fold_dir_test/fold_0/train.csv", config
+        Path(config["manifest_dir"]) / "train.csv", config
     )
     x, _ = dataset[0]
 
