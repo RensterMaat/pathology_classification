@@ -10,7 +10,7 @@ def test_dataset():
         "/mnt/hpc/rens/hipt/data/fold_dir_dcb/fold_0/train.csv", config
     )
 
-    x, y = dataset[0]
+    x, y, _ = dataset[0]
 
 
 def test_datamodule():
@@ -23,4 +23,4 @@ def test_datamodule():
     datamodule.setup(stage="test")
     test_dl = datamodule.test_dataloader()
 
-    x, y = next(iter(train_dl))
+    x, y, _ = next(iter(train_dl))

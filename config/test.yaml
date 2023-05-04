@@ -1,6 +1,9 @@
 # data paths
-manifest_dir: "/mnt/hpc/rens/hipt/data/fold_dir_primary_dcb/fold_1"
+manifest_dir: "/mnt/hpc/rens/hipt/data/fold_dir_primary/fold_0"
 features_dir: "/mnt/hpc/pathology/hipt_features2/hipt/8d74jc21/features/global/slide"
+slide_dir: '/mnt/hpc/pathology/slides'
+patch_coordinate_dir: '/mnt/hpc/pathology/hipt_preprocessed2/hipt_test1/2023-04-03_14_47/patches/4096/jpg'
+output_dir: "/home/rens/repos/pathology_classification/output"
 
 # task
 target: label
@@ -18,6 +21,12 @@ weight_decay: 1e-5
 patience: 10
 num_workers: 24
 seed: 0 
+
+# heatmaps
+level_for_visualizing_heatmap: 7
+dpi: 80
+patch_size_during_feature_extraction: 4096
+level_during_feature_extraction: 1
 
 # logging
 use_wandb: False

@@ -5,7 +5,7 @@ from torchmetrics.classification import BinaryAUROC
 
 
 class Model(pl.LightningModule):
-    def __init__(self, config):
+    def __init__(self, config: dict) -> None:
         super().__init__()
 
         self.config = config
@@ -20,41 +20,35 @@ class Model(pl.LightningModule):
         self.train_auc = BinaryAUROC(pos_label=1)
         self.val_auc = BinaryAUROC(pos_label=1)
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x: torch.Tensor, return_heatmap: bool = False) -> torch.Tensor:
+        return self.model(x, return_heatmap)
 
-    def training_step(self, batch, batch_idx):
-        x, y = batch
+    def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        x, y, _ = batch
         y_hat = self.model(x)
 
         loss = self.criterion(y_hat, y)
         self.train_auc.update(y_hat.squeeze(), y.squeeze().int())
 
-        self.log_dict({
-            'train/loss':loss,
-            'train/auc':self.train_auc.compute()
-        })
-        
+        self.log_dict({"train/loss": loss, "train/auc": self.train_auc.compute()})
+
         return loss
 
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
+    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        x, y, _ = batch
         y_hat = self.model(x)
 
         loss = self.criterion(y_hat, y)
         self.val_auc.update(y_hat.squeeze(), y.squeeze().int())
 
-        self.log_dict({
-            'val/loss':loss,
-            'val/auc':self.val_auc.compute()
-        })
+        self.log_dict({"val/loss": loss, "val/auc": self.val_auc.compute()})
 
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         pass
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.AdamW(
             self.parameters(),
             lr=float(self.config["learning_rate"]),
@@ -89,12 +83,12 @@ class NaivePoolingClassifier(Classifier):
             raise NotImplementedError
 
     def forward(self, x: torch.Tensor, return_heatmap: bool = False) -> torch.Tensor:
-        per_patch_prediction = self.classifier(x[0])
-        logits = torch.t(self.pooling(torch.t(per_patch_prediction)))
-        slide_prediction = self.final_activation(logits)
+        per_patch_logits = self.classifier(x[0])
+        per_slide_logits = torch.t(self.pooling(torch.t(per_patch_logits)))
+        slide_prediction = self.final_activation(per_slide_logits)
 
         if return_heatmap:
-            return slide_prediction, per_patch_prediction
+            return slide_prediction, self.final_activation(per_patch_logits)
 
         return slide_prediction
 
