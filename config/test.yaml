@@ -1,11 +1,23 @@
+# data paths
+manifest_dir: "/mnt/hpc/rens/hipt/data/fold_dir_primary_dcb/fold_1"
+features_dir: "/mnt/hpc/pathology/hipt_features2/hipt/8d74jc21/features/global/slide"
+
+# task
 target: label
+n_classes: 2
+
+# model
+model: NaivePoolingClassifier
 n_features: 192
-n_classes: 3
 pooling_function: max
 final_activation: softmax
-manifest_dir: "/mnt/hpc/rens/hipt/data/fold_dir_dcb/fold_0"
-features_dir: "/mnt/hpc/pathology/hipt_features2/hipt/8d74jc21/features/global/slide"
-num_workers: 1
-model: NaivePoolingClassifier
+
+# training parameters
 learning_rate: 2e-4
 weight_decay: 1e-5
+patience: 10
+num_workers: 24
+seed: 0 
+
+# logging
+use_wandb: False

@@ -23,8 +23,8 @@ class PreextractedFeatureDataset(Dataset):
         x = torch.load(
             Path(self.config["features_dir"]) / (case["slide_id"] + ".pt")
         ).float()
-        y = torch.zeros((1, self.config["n_classes"])).float()
-        y[:, int(case[self.target])] = 1
+        y = torch.zeros(self.config["n_classes"]).float()
+        y[int(case[self.target])] = 1
 
         return x, y
 

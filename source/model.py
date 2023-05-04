@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
+from torchmetrics.classification import BinaryAUROC
 
 
 class Model(pl.LightningModule):
@@ -16,6 +17,9 @@ class Model(pl.LightningModule):
 
         self.criterion = nn.BCELoss()
 
+        self.train_auc = BinaryAUROC(pos_label=1)
+        self.val_auc = BinaryAUROC(pos_label=1)
+
     def forward(self, x):
         return self.model(x)
 
@@ -23,15 +27,27 @@ class Model(pl.LightningModule):
         x, y = batch
         y_hat = self.model(x)
 
-        loss = self.criterion(y_hat, y[0])
+        loss = self.criterion(y_hat, y)
+        self.train_auc.update(y_hat.squeeze(), y.squeeze().int())
 
+        self.log_dict({
+            'train/loss':loss,
+            'train/auc':self.train_auc.compute()
+        })
+        
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.model(x)
 
-        loss = self.criterion(y_hat, y[0])
+        loss = self.criterion(y_hat, y)
+        self.val_auc.update(y_hat.squeeze(), y.squeeze().int())
+
+        self.log_dict({
+            'val/loss':loss,
+            'val/auc':self.val_auc.compute()
+        })
 
         return loss
 
@@ -52,7 +68,7 @@ class Classifier(nn.Module):
         super().__init__()
 
         if config["final_activation"] == "softmax":
-            self.final_activation = nn.Softmax()
+            self.final_activation = nn.Softmax(dim=1)
         elif config["final_activation"] == "sigmoid":
             self.final_activation = nn.Sigmoid()
         else:
