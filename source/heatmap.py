@@ -9,10 +9,10 @@ from openslide import OpenSlide
 
 
 class HeatmapGenerator:
-    def __init__(self, config):
+    def __init__(self, config: dict) -> None:
         self.config = config
 
-    def __call__(self, heatmap_vector, slide_id):
+    def __call__(self, heatmap_vector: np.array, slide_id: str):
         slide = self.get_slide(slide_id)
         coordinates = self.get_coordinates(slide_id)
 
@@ -59,7 +59,7 @@ class HeatmapGenerator:
         ax.axis("off")
 
         for ix, coordinate in enumerate(scaled_coordinates):
-            prediction = float(heatmap_vector[ix, class_ix].detach())
+            prediction = float(heatmap_vector[ix, class_ix])
             ax.add_patch(
                 Rectangle(
                     coordinate,
