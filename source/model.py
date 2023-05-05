@@ -20,8 +20,8 @@ class Model(pl.LightningModule):
         self.train_auc = BinaryAUROC(pos_label=1)
         self.val_auc = BinaryAUROC(pos_label=1)
 
-    def forward(self, x: torch.Tensor, return_heatmap: bool = False) -> torch.Tensor:
-        return self.model(x, return_heatmap)
+    def forward(self, x: torch.Tensor, return_heatmap_vector: bool = False) -> torch.Tensor:
+        return self.model(x, return_heatmap_vector)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         x, y, _ = batch
@@ -82,12 +82,12 @@ class NaivePoolingClassifier(Classifier):
         else:
             raise NotImplementedError
 
-    def forward(self, x: torch.Tensor, return_heatmap: bool = False) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, return_heatmap_vector: bool = False) -> torch.Tensor:
         per_patch_logits = self.classifier(x[0])
         per_slide_logits = torch.t(self.pooling(torch.t(per_patch_logits)))
         slide_prediction = self.final_activation(per_slide_logits)
 
-        if return_heatmap:
+        if return_heatmap_vector:
             return slide_prediction, self.final_activation(per_patch_logits)
 
         return slide_prediction
