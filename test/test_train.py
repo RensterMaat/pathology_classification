@@ -27,3 +27,7 @@ def test_overfit():
         num_sanity_val_steps=0
     )
     trainer.fit(model, datamodule)
+
+def test_testing_loop():
+    trainer = Trainer(accelerator='cpu')
+    trainer.test(model, datamodule)

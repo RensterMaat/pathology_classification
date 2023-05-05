@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
+import pandas as pd
 import pytorch_lightning as pl
 from torchmetrics.classification import BinaryAUROC
+from heatmap import HeatmapGenerator
+from pathlib import Path
 
 
 class Model(pl.LightningModule):
@@ -19,6 +22,12 @@ class Model(pl.LightningModule):
 
         self.train_auc = BinaryAUROC(pos_label=1)
         self.val_auc = BinaryAUROC(pos_label=1)
+        self.test_auc = BinaryAUROC(pos_label=1)
+
+        self.test_results = []
+
+        if config['generate_heatmaps']:
+            self.heatmap_generator = HeatmapGenerator(config)
 
     def forward(self, x: torch.Tensor, return_heatmap_vector: bool = False) -> torch.Tensor:
         return self.model(x, return_heatmap_vector)
@@ -46,7 +55,21 @@ class Model(pl.LightningModule):
         return loss
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
-        pass
+        x, y, features_path = batch
+        y_hat, heatmap_vector = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
+
+        slide_id = Path(features_path).stem
+
+        if self.config['generate_heatmaps']:
+            heatmap = self.heatmap_generator(heatmap_vector, features_path)
+            save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
+            heatmap.savefig(save_path)
+
+        return [slide_id, int(y.detach().cpu()), float(y_hat.detach().cpu)]
+
+    def test_epoch_end(self, outputs):
+        results = pd.DataFrame(outputs, columns=['slide_id',self.config['label'],'prediction'])
+        results.to_csv(Path(self.config['experiment_log_dir']) / 'test_output.csv', index=False)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.AdamW(
