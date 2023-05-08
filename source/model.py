@@ -24,7 +24,7 @@ class Model(pl.LightningModule):
         self.val_auc = BinaryAUROC(pos_label=1)
         self.test_auc = BinaryAUROC(pos_label=1)
 
-        self.test_results = []
+        self.test_outputs = []
 
         if config['generate_heatmaps']:
             self.heatmap_generator = HeatmapGenerator(config)
@@ -62,13 +62,13 @@ class Model(pl.LightningModule):
 
         if self.config['generate_heatmaps']:
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
-            save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
-            heatmap.savefig(save_path)
+            # save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
+            # heatmap.savefig(save_path)
 
-        return [slide_id, int(y[0,1].detach().cpu()), float(y_hat[0,1].detach().cpu())]
+        self.test_outputs.append([slide_id, int(y[0,1].detach().cpu()), float(y_hat[0,1].detach().cpu())])
 
-    def on_test_epoch_end(self, outputs):
-        results = pd.DataFrame(outputs, columns=['slide_id',self.config['label'],'prediction'])
+    def on_test_epoch_end(self):
+        results = pd.DataFrame(self.test_outputs, columns=['slide_id',self.config['target'],'prediction'])
         results.to_csv(Path(self.config['experiment_log_dir']) / 'test_output.csv', index=False)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
