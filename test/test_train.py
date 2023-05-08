@@ -30,4 +30,9 @@ def test_overfit():
 
 def test_testing_loop():
     trainer = Trainer(accelerator='cpu')
+    config['experiment_log_dir'] = trainer.logger.log_dir
+
+    datamodule = DataModule(config)
+    model = Model(config)
+
     trainer.test(model, datamodule)

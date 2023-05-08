@@ -12,11 +12,11 @@ class HeatmapGenerator:
     def __init__(self, config: dict) -> None:
         self.config = config
 
-    def __call__(self, heatmap_vector: np.array, slide_id: str) -> matplotlib.Figure:
+    def __call__(self, heatmap_vector: np.array, slide_id: str) -> matplotlib.figure.Figure:
         slide = self.get_slide(slide_id)
         coordinates = self.get_coordinates(slide_id)
 
-        heatmap = self.generate_heatmap(slide, coordinates, heatmap_vector)
+        heatmap = self.generate_heatmap(slide, heatmap_vector, coordinates)
 
         return heatmap
 
@@ -44,7 +44,7 @@ class HeatmapGenerator:
             )
         )
 
-    def generate_heatmap(self, slide: str, heatmap_vector: np.array, coordinates: np.array) -> matplotlib.Figure:
+    def generate_heatmap(self, slide: str, heatmap_vector: np.array, coordinates: np.array) -> matplotlib.figure.Figure:
         img = self.get_image(slide)
         patch_size = self.get_patch_size_for_plotting(slide)
         scaled_coordinates = self.scale_coordinates(coordinates, slide)

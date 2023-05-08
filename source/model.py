@@ -3,7 +3,7 @@ import torch.nn as nn
 import pandas as pd
 import pytorch_lightning as pl
 from torchmetrics.classification import BinaryAUROC
-from heatmap import HeatmapGenerator
+from source.heatmap import HeatmapGenerator
 from pathlib import Path
 
 
@@ -58,16 +58,16 @@ class Model(pl.LightningModule):
         x, y, features_path = batch
         y_hat, heatmap_vector = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
 
-        slide_id = Path(features_path).stem
+        slide_id = Path(features_path[0]).stem
 
         if self.config['generate_heatmaps']:
-            heatmap = self.heatmap_generator(heatmap_vector, features_path)
+            heatmap = self.heatmap_generator(heatmap_vector, slide_id)
             save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
             heatmap.savefig(save_path)
 
-        return [slide_id, int(y.detach().cpu()), float(y_hat.detach().cpu)]
+        return [slide_id, int(y[0,1].detach().cpu()), float(y_hat[0,1].detach().cpu())]
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         results = pd.DataFrame(outputs, columns=['slide_id',self.config['label'],'prediction'])
         results.to_csv(Path(self.config['experiment_log_dir']) / 'test_output.csv', index=False)
 
