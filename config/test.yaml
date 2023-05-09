@@ -10,10 +10,15 @@ target: label
 n_classes: 2
 
 # model
-model: NaivePoolingClassifier
+model: AttentionClassifier
 n_features: 192
-pooling_function: max
 final_activation: softmax
+
+# naive pooling classifier specific parameters
+pooling_function: max
+
+# attention classifier specific parameters
+attention_dim: 128
 
 # training parameters
 learning_rate: 2e-4

@@ -15,6 +15,8 @@ class Model(pl.LightningModule):
 
         if config["model"] == "NaivePoolingClassifier":
             self.model = NaivePoolingClassifier(config)
+        elif config["model"] == "AttentionClassifier":
+            self.model = AttentionClassifier(config)
         else:
             raise NotImplementedError
 
@@ -56,16 +58,21 @@ class Model(pl.LightningModule):
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         x, y, features_path = batch
-        y_hat, heatmap_vector = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
-
         slide_id = Path(features_path[0]).stem
+        
 
         if self.config['generate_heatmaps']:
+            y_hat, heatmap_vector = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
-            # save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
-            # heatmap.savefig(save_path)
+            save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
+            heatmap.savefig(save_path)
+        else:
+            y_hat = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
+
+        self.test_auc.update(y_hat.squeeze(), y.squeeze().int())
 
         self.test_outputs.append([slide_id, int(y[0,1].detach().cpu()), float(y_hat[0,1].detach().cpu())])
+        self.log_dict({"test/auc": self.test_auc.compute()}, on_step=False, on_epoch=True)
 
     def on_test_epoch_end(self):
         results = pd.DataFrame(self.test_outputs, columns=['slide_id',self.config['target'],'prediction'])
@@ -118,13 +125,40 @@ class NaivePoolingClassifier(Classifier):
 
 class AttentionClassifier(Classifier):
     def __init__(self, config: dict) -> None:
+        super().__init__(config)
+
+        self.attention_layer = GatedAttentionLayer(config['n_features'], config['attention_dim'], config['n_classes'])
+        self.classifier = nn.Linear(config["n_features"], 1)
+
+    def forward(self, x, return_heatmap_vector=False):
+        attention = self.attention_layer(x)[0]
+
+        slide_representation = torch.matmul(torch.transpose(attention, 0, 1), x)
+        per_slide_logits = self.classifier(slide_representation)
+        slide_prediction = torch.transpose(self.final_activation(per_slide_logits)[0], 0, 1)
+
+        if return_heatmap_vector:
+            return slide_prediction, attention
+
+        return slide_prediction
+
+
+class GatedAttentionLayer(nn.Module):
+    def __init__(self, n_features, attention_dim, n_classes):
         super().__init__()
 
-    def forward(self, x):
-        pass
+        self.attention_a = nn.Sequential(*[nn.Linear(n_features, attention_dim), nn.Tanh()])
+        self.attention_b = nn.Sequential(*[nn.Linear(n_features,attention_dim), nn.Sigmoid()])
+        self.attention_c = nn.Linear(*[attention_dim, n_classes])
+        self.softmax = nn.Softmax(dim=1)
 
-    def get_heatmap(self, x):
-        pass
+    def forward(self, x):
+        a = self.attention_a(x)
+        b = self.attention_b(x)
+        A = a.mul(b)
+        A = self.attention_c(A)
+        attention = self.softmax(A)
+        return attention
 
 
 class TransformerClassifier(nn.Module):

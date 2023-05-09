@@ -86,9 +86,5 @@ class HeatmapGenerator:
                     return str(Path(dir) / file)
 
     def find_coordinates_file_path(self, slide_id: str) -> str:
-        # for dir, _, files in os.walk(self.config["patch_coordinate_dir"]):
-        #     for file in files:
-        #         if file == slide_id + ".h5":
-        #             return str(Path(dir) / file)
         root = Path(self.config["patch_coordinate_dir"])
         return str(root / slide_id / (slide_id + '.h5'))
