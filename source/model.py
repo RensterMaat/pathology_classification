@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import pandas as pd
 import pytorch_lightning as pl
+import matplotlib.pyplot as plt
 from torchmetrics.classification import BinaryAUROC
 from source.heatmap import HeatmapGenerator
 from pathlib import Path
@@ -69,7 +70,7 @@ class Model(pl.LightningModule):
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
             save_path = Path(self.config["experiment_log_dir"]) / (slide_id + ".jpg")
             heatmap.savefig(save_path)
-            heatmap.close()
+            plt.close("all")
         else:
             y_hat = self.model.forward(
                 x, return_heatmap_vector=self.config["generate_heatmaps"]
@@ -144,7 +145,10 @@ class AttentionClassifier(Classifier):
         super().__init__(config)
 
         self.attention_layer = GatedAttentionLayer(
-            config["n_features"], config["attention_dim"], config["n_classes"]
+            config["n_features"],
+            config["attention_dim"],
+            config["n_classes"],
+            config["dropout"],
         )
         self.classifier = nn.Linear(config["n_features"], 1)
 
@@ -164,15 +168,19 @@ class AttentionClassifier(Classifier):
 
 
 class GatedAttentionLayer(nn.Module):
-    def __init__(self, n_features, attention_dim, n_classes):
+    def __init__(self, n_features, attention_dim, n_classes, dropout):
         super().__init__()
 
-        self.attention_a = nn.Sequential(
-            *[nn.Linear(n_features, attention_dim), nn.Tanh()]
-        )
-        self.attention_b = nn.Sequential(
-            *[nn.Linear(n_features, attention_dim), nn.Sigmoid()]
-        )
+        self.attention_a = [nn.Linear(n_features, attention_dim), nn.Tanh()]
+        self.attention_b = [nn.Linear(n_features, attention_dim), nn.Sigmoid()]
+
+        if dropout:
+            self.attention_a.append(nn.Dropout(dropout))
+            self.attention_b.append(nn.Dropout(dropout))
+
+        self.attention_a = nn.Sequential(*self.attention_a)
+        self.attention_b = nn.Sequential(*self.attention_b)
+
         self.attention_c = nn.Linear(*[attention_dim, n_classes])
         self.softmax = nn.Softmax(dim=1)
 

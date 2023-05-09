@@ -13,6 +13,7 @@ n_classes: 2
 model: AttentionClassifier
 n_features: 192
 final_activation: softmax
+dropout: 0.25
 
 # naive pooling classifier specific parameters
 pooling_function: max
