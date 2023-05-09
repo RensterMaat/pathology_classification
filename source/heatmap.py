@@ -12,7 +12,9 @@ class HeatmapGenerator:
     def __init__(self, config: dict) -> None:
         self.config = config
 
-    def __call__(self, heatmap_vector: np.array, slide_id: str) -> matplotlib.figure.Figure:
+    def __call__(
+        self, heatmap_vector: np.array, slide_id: str
+    ) -> matplotlib.figure.Figure:
         slide = self.get_slide(slide_id)
         coordinates = self.get_coordinates(slide_id)
 
@@ -44,17 +46,24 @@ class HeatmapGenerator:
             )
         )
 
-    def generate_heatmap(self, slide: str, heatmap_vector: np.array, coordinates: np.array) -> matplotlib.figure.Figure:
+    def generate_heatmap(
+        self, slide: str, heatmap_vector: np.array, coordinates: np.array
+    ) -> matplotlib.figure.Figure:
         img = self.get_image(slide)
         patch_size = self.get_patch_size_for_plotting(slide)
         scaled_coordinates = self.scale_coordinates(coordinates, slide)
 
-        cmap = matplotlib.colormaps[
-            "seismic" if self.config["model"] == "NaivePoolingClassifier" else "Reds"
-        ]
+        if self.config["model"] == "NaivePoolingClassifier":
+            cmap = matplotlib.colormaps["seismic"]
+        else:
+            cmap = matplotlib.colormaps["Reds"]
+            heatmap_vector = heatmap_vector / heatmap_vector.max(axis=0).values
+
         class_ix = 1
 
-        fig, ax = plt.subplots(figsize=np.array(img.shape[:-1]) / self.config["dpi"])
+        fig, ax = plt.subplots(
+            figsize=np.array(list(reversed(img.shape[:-1]))) / self.config["dpi"]
+        )
         ax.imshow(img)
         ax.axis("off")
 
@@ -79,7 +88,7 @@ class HeatmapGenerator:
         )
         return self.config["patch_size_during_feature_extraction"] / scaling_factor
 
-    def find_slide_file_path(self, slide_id:str) -> str:
+    def find_slide_file_path(self, slide_id: str) -> str:
         for dir, _, files in os.walk(self.config["slide_dir"]):
             for file in files:
                 if ".".join(file.split(".")[:-1]) == slide_id:
@@ -87,4 +96,4 @@ class HeatmapGenerator:
 
     def find_coordinates_file_path(self, slide_id: str) -> str:
         root = Path(self.config["patch_coordinate_dir"])
-        return str(root / slide_id / (slide_id + '.h5'))
+        return str(root / slide_id / (slide_id + ".h5"))

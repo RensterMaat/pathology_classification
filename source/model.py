@@ -28,10 +28,12 @@ class Model(pl.LightningModule):
 
         self.test_outputs = []
 
-        if config['generate_heatmaps']:
+        if config["generate_heatmaps"]:
             self.heatmap_generator = HeatmapGenerator(config)
 
-    def forward(self, x: torch.Tensor, return_heatmap_vector: bool = False) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, return_heatmap_vector: bool = False
+    ) -> torch.Tensor:
         return self.model(x, return_heatmap_vector)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
@@ -59,24 +61,36 @@ class Model(pl.LightningModule):
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         x, y, features_path = batch
         slide_id = Path(features_path[0]).stem
-        
 
-        if self.config['generate_heatmaps']:
-            y_hat, heatmap_vector = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
+        if self.config["generate_heatmaps"]:
+            y_hat, heatmap_vector = self.model.forward(
+                x, return_heatmap_vector=self.config["generate_heatmaps"]
+            )
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
-            save_path = Path(self.config['experiment_log_dir']) / (slide_id + '.jpg')
+            save_path = Path(self.config["experiment_log_dir"]) / (slide_id + ".jpg")
             heatmap.savefig(save_path)
+            heatmap.close()
         else:
-            y_hat = self.model.forward(x, return_heatmap_vector=self.config['generate_heatmaps'])
+            y_hat = self.model.forward(
+                x, return_heatmap_vector=self.config["generate_heatmaps"]
+            )
 
         self.test_auc.update(y_hat.squeeze(), y.squeeze().int())
 
-        self.test_outputs.append([slide_id, int(y[0,1].detach().cpu()), float(y_hat[0,1].detach().cpu())])
-        self.log_dict({"test/auc": self.test_auc.compute()}, on_step=False, on_epoch=True)
+        self.test_outputs.append(
+            [slide_id, int(y[0, 1].detach().cpu()), float(y_hat[0, 1].detach().cpu())]
+        )
+        self.log_dict(
+            {"test/auc": self.test_auc.compute()}, on_step=False, on_epoch=True
+        )
 
     def on_test_epoch_end(self):
-        results = pd.DataFrame(self.test_outputs, columns=['slide_id',self.config['target'],'prediction'])
-        results.to_csv(Path(self.config['experiment_log_dir']) / 'test_output.csv', index=False)
+        results = pd.DataFrame(
+            self.test_outputs, columns=["slide_id", self.config["target"], "prediction"]
+        )
+        results.to_csv(
+            Path(self.config["experiment_log_dir"]) / "test_output.csv", index=False
+        )
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.AdamW(
@@ -112,7 +126,9 @@ class NaivePoolingClassifier(Classifier):
         else:
             raise NotImplementedError
 
-    def forward(self, x: torch.Tensor, return_heatmap_vector: bool = False) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, return_heatmap_vector: bool = False
+    ) -> torch.Tensor:
         per_patch_logits = self.classifier(x[0])
         per_slide_logits = torch.t(self.pooling(torch.t(per_patch_logits)))
         slide_prediction = self.final_activation(per_slide_logits)
@@ -127,7 +143,9 @@ class AttentionClassifier(Classifier):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
 
-        self.attention_layer = GatedAttentionLayer(config['n_features'], config['attention_dim'], config['n_classes'])
+        self.attention_layer = GatedAttentionLayer(
+            config["n_features"], config["attention_dim"], config["n_classes"]
+        )
         self.classifier = nn.Linear(config["n_features"], 1)
 
     def forward(self, x, return_heatmap_vector=False):
@@ -135,7 +153,9 @@ class AttentionClassifier(Classifier):
 
         slide_representation = torch.matmul(torch.transpose(attention, 0, 1), x)
         per_slide_logits = self.classifier(slide_representation)
-        slide_prediction = torch.transpose(self.final_activation(per_slide_logits)[0], 0, 1)
+        slide_prediction = torch.transpose(
+            self.final_activation(per_slide_logits)[0], 0, 1
+        )
 
         if return_heatmap_vector:
             return slide_prediction, attention
@@ -147,8 +167,12 @@ class GatedAttentionLayer(nn.Module):
     def __init__(self, n_features, attention_dim, n_classes):
         super().__init__()
 
-        self.attention_a = nn.Sequential(*[nn.Linear(n_features, attention_dim), nn.Tanh()])
-        self.attention_b = nn.Sequential(*[nn.Linear(n_features,attention_dim), nn.Sigmoid()])
+        self.attention_a = nn.Sequential(
+            *[nn.Linear(n_features, attention_dim), nn.Tanh()]
+        )
+        self.attention_b = nn.Sequential(
+            *[nn.Linear(n_features, attention_dim), nn.Sigmoid()]
+        )
         self.attention_c = nn.Linear(*[attention_dim, n_classes])
         self.softmax = nn.Softmax(dim=1)
 

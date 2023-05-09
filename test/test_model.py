@@ -24,6 +24,7 @@ def test_naive_pooling_classifier():
     y_hat, heatmap = model.forward(x.unsqueeze(0), return_heatmap_vector=True)
     print()
 
+
 def test_attention_classifier():
     dataset = PreextractedFeatureDataset(
         Path(config["manifest_dir"]) / "train.csv", config
