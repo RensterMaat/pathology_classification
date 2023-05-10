@@ -9,3 +9,4 @@ Todo:
 To discuss:
 - CLAM uses multibranch attention, whereas HIPT only uses singlebranch attention
 - HIPT has a rho linear layer between attention and classifier, whereas CLAM does not. 
+- make hiddem dim a parameter in clam/hipt

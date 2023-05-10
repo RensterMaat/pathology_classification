@@ -7,6 +7,8 @@ class Classifier(nn.Module):
     def __init__(self, config: dict) -> None:
         super().__init__()
 
+        self.config = config
+
         if config["final_activation"] == "softmax":
             self.final_activation = nn.Softmax(dim=1)
         elif config["final_activation"] == "sigmoid":
@@ -54,10 +56,12 @@ class AttentionClassifier(Classifier):
         self.attention_pooling = GlobalGatedAttentionPooling(
             input_dim=config["n_features"],
             hidden_dim=config["attention_dim"],
-            output_dim=1,
+            output_dim=config["n_classes"],
             dropout=config["dropout"],
         )
-        self.classifier = nn.Linear(config["n_features"], config["n_classes"])
+        self.classifiers = [
+            nn.Linear(config["n_features"], 1) for _ in range(config["n_classes"])
+        ]
 
     def forward(self, x, return_heatmap_vector=False):
         x = x[0]
@@ -67,7 +71,12 @@ class AttentionClassifier(Classifier):
         attention = self.attention_pooling(x)
         slide_representation = torch.matmul(attention.transpose(0, 1), x)
 
-        slide_logits = self.classifier(slide_representation)
+        slide_logits = []
+        for class_ix in range(self.config["n_classes"]):
+            class_logit = self.classifiers[class_ix](slide_representation[class_ix])[0]
+            slide_logits.append(class_logit)
+        slide_logits = torch.stack(slide_logits).unsqueeze(dim=0)
+
         slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
