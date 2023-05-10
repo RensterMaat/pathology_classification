@@ -1,9 +1,11 @@
 import yaml
 from pathlib import Path
-from source.model import (
-    NaivePoolingClassifier,
+from source.classifiers import (
     AttentionClassifier,
+    NaivePoolingClassifier,
     TransformerClassifier,
+)
+from source.model import (
     Model,
 )
 from source.data import PreextractedFeatureDataset, DataModule
