@@ -59,9 +59,9 @@ class AttentionClassifier(Classifier):
             output_dim=config["n_classes"],
             dropout=config["dropout"],
         )
-        self.classifiers = [
-            nn.Linear(config["n_features"], 1) for _ in range(config["n_classes"])
-        ]
+        self.classifiers = nn.ModuleList(
+            [nn.Linear(config["n_features"], 1) for _ in range(config["n_classes"])]
+        )
 
     def forward(self, x, return_heatmap_vector=False):
         x = x[0]

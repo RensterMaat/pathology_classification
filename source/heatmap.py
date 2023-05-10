@@ -55,11 +55,14 @@ class HeatmapGenerator:
 
         if self.config["model"] == "NaivePoolingClassifier":
             cmap = matplotlib.colormaps["seismic"]
-            class_ix = 1
         else:
             cmap = matplotlib.colormaps["Reds"]
             heatmap_vector = heatmap_vector / heatmap_vector.max(axis=0).values
+
+        if self.config["model"] == "TransformerClassifier":
             class_ix = 0
+        else:
+            class_ix = 1
 
         fig, ax = plt.subplots(
             figsize=np.array(list(reversed(img.shape[:-1]))) / self.config["dpi"]

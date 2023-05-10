@@ -10,7 +10,7 @@ target: label
 n_classes: 2
 
 # model
-model: TransformerClassifier
+model: AttentionClassifier
 n_features: 192
 final_activation: softmax
 dropout: False
@@ -34,7 +34,7 @@ num_workers: 24
 seed: 0 
 
 # heatmaps
-generate_heatmaps: True
+generate_heatmaps: False
 level_for_visualizing_heatmap: 7
 dpi: 80
 patch_size_during_feature_extraction: 4096
