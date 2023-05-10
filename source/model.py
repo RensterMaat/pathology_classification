@@ -18,6 +18,8 @@ class Model(pl.LightningModule):
             self.model = NaivePoolingClassifier(config)
         elif config["model"] == "AttentionClassifier":
             self.model = AttentionClassifier(config)
+        elif config["model"] == "TransformerClassifier":
+            self.model = TransformerClassifier(config)
         else:
             raise NotImplementedError
 
@@ -144,22 +146,30 @@ class AttentionClassifier(Classifier):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
 
-        self.attention_layer = GatedAttentionLayer(
-            config["n_features"],
-            config["attention_dim"],
-            config["n_classes"],
-            config["dropout"],
+        self.phi = nn.Sequential(
+            nn.Linear(config["n_features"], config["n_features"]),
+            nn.ReLU(),
+            nn.Dropout(config["dropout"]),
         )
-        self.classifier = nn.Linear(config["n_features"], 1)
+
+        self.attention_pooling = GlobalGatedAttentionPooling(
+            input_dim=config["n_features"],
+            hidden_dim=config["attention_dim"],
+            output_dim=1,
+            dropout=config["dropout"],
+        )
+        self.classifier = nn.Linear(config["n_features"], config["n_classes"])
 
     def forward(self, x, return_heatmap_vector=False):
-        attention = self.attention_layer(x)[0]
+        x = x[0]
 
-        slide_representation = torch.matmul(torch.transpose(attention, 0, 1), x)
-        per_slide_logits = self.classifier(slide_representation)
-        slide_prediction = torch.transpose(
-            self.final_activation(per_slide_logits)[0], 0, 1
-        )
+        x = self.phi(x)
+
+        attention = self.attention_pooling(x)
+        slide_representation = torch.matmul(attention.transpose(0, 1), x)
+
+        slide_logits = self.classifier(slide_representation)
+        slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
             return slide_prediction, attention
@@ -167,39 +177,94 @@ class AttentionClassifier(Classifier):
         return slide_prediction
 
 
-class GatedAttentionLayer(nn.Module):
-    def __init__(self, n_features, attention_dim, n_classes, dropout):
+class GlobalGatedAttentionPooling(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim, dropout):
         super().__init__()
 
-        self.attention_a = [nn.Linear(n_features, attention_dim), nn.Tanh()]
-        self.attention_b = [nn.Linear(n_features, attention_dim), nn.Sigmoid()]
+        self.attention_a = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim), nn.Tanh(), nn.Dropout(dropout)
+        )
+        self.attention_b = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim), nn.Sigmoid(), nn.Dropout(dropout)
+        )
 
-        if dropout:
-            self.attention_a.append(nn.Dropout(dropout))
-            self.attention_b.append(nn.Dropout(dropout))
-
-        self.attention_a = nn.Sequential(*self.attention_a)
-        self.attention_b = nn.Sequential(*self.attention_b)
-
-        self.attention_c = nn.Linear(*[attention_dim, n_classes])
-        self.softmax = nn.Softmax(dim=1)
+        self.attention_c = nn.Linear(*[hidden_dim, output_dim])
+        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         a = self.attention_a(x)
         b = self.attention_b(x)
         A = a.mul(b)
+
         A = self.attention_c(A)
         attention = self.softmax(A)
+
         return attention
 
 
-class TransformerClassifier(nn.Module):
-    def __init__(self, config):
-        super().__init__()
-        pass
+class TransformerClassifier(Classifier):
+    """
+    Slide level classifier using patch level features based on HIPT's last layer with the following steps:
+    1. Linear layer: n_patches x n_features -> n_patches x n_features
+    2. Transformer: n_patches x n_features -> n_patches x n_features
+    3. Attention pooling: n_patches x n_features -> n_features
+    4. Linear layer: n_features -> n_features
+    5. Classifier: n_features -> n_classes
+    """
 
-    def forward(self, x):
-        pass
+    def __init__(self, config):
+        super().__init__(config)
+
+        # make hidden dim a parameter
+        self.phi = nn.Sequential(
+            nn.Linear(config["n_features"], config["n_features"]),
+            nn.ReLU(),
+            nn.Dropout(config["dropout"]),
+        )
+
+        self.transformer = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=config["n_features"],
+                nhead=config["n_heads"],
+                dim_feedforward=config["n_features"],
+                dropout=config["dropout"],
+                activation=config["activation_function"],
+            ),
+            num_layers=config["n_layers"],
+        )
+
+        self.attention_pooling = GlobalGatedAttentionPooling(
+            input_dim=config["n_features"],
+            hidden_dim=config["attention_dim"],
+            output_dim=1,
+            dropout=config["dropout"],
+        )
+
+        self.rho = nn.Sequential(
+            nn.Linear(config["n_features"], config["n_features"]),
+            nn.ReLU(),
+            nn.Dropout(config["dropout"]),
+        )
+
+        self.classifier = nn.Linear(config["n_features"], config["n_classes"])
+
+    def forward(self, x, return_heatmap_vector=False):
+        x = x[0]
+
+        x = self.phi(x)
+        x = self.transformer(x)
+
+        attention = self.attention_pooling(x)
+        slide_representation = torch.matmul(attention.transpose(0, 1), x)
+
+        slide_representation = self.rho(slide_representation)
+        slide_logits = self.classifier(slide_representation)
+        slide_prediction = self.final_activation(slide_logits)
+
+        if return_heatmap_vector:
+            return slide_prediction, attention
+
+        return slide_prediction
 
     def get_heatmap(self, x):
         pass

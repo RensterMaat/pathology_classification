@@ -34,4 +34,16 @@ def test_attention_classifier():
     model = AttentionClassifier(config)
 
     y_hat, attention = model.forward(x.unsqueeze(0), return_heatmap_vector=True)
+
+    print()
+
+
+def test_transformer_classifier():
+    dataset = PreextractedFeatureDataset(
+        Path(config["manifest_dir"]) / "train.csv", config
+    )
+    x, _, _ = dataset[0]
+    model = TransformerClassifier(config)
+
+    y_hat, attention = model.forward(x.unsqueeze(0), return_heatmap_vector=True)
     print()

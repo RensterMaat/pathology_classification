@@ -10,16 +10,21 @@ target: label
 n_classes: 2
 
 # model
-model: AttentionClassifier
+model: TransformerClassifier
 n_features: 192
 final_activation: softmax
-dropout: 0.25
+dropout: False
 
 # naive pooling classifier specific parameters
 pooling_function: max
 
 # attention classifier specific parameters
 attention_dim: 128
+
+# transformer classifier specific parameters
+n_heads: 3
+activation_function: 'relu'
+n_layers: 2
 
 # training parameters
 learning_rate: 2e-4
@@ -29,7 +34,7 @@ num_workers: 24
 seed: 0 
 
 # heatmaps
-generate_heatmaps: True
+generate_heatmaps: False
 level_for_visualizing_heatmap: 7
 dpi: 80
 patch_size_during_feature_extraction: 4096
