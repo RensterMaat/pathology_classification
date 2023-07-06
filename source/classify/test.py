@@ -13,7 +13,7 @@ logger = WandbLogger(save_dir=config["output_dir"], project="wsi_classification_
 
 trainer = Trainer(logger=logger)
 config["experiment_log_dir"] = logger.experiment._settings.sync_dir
-config['fold'] = 0
+config["fold"] = 0
 
 model = Model(config)
 ckpt = torch.load(

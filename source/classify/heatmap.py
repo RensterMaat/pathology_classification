@@ -1,12 +1,8 @@
-import os
-import h5py
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from pathlib import Path
-from openslide import OpenSlide
-from source.utils.utils import get_slide, get_coordinates, find_coordinates_file_path, find_slide_file_path
+from source.utils.utils import get_slide, get_coordinates, scale_coordinates
 
 
 class HeatmapGenerator:
@@ -16,19 +12,19 @@ class HeatmapGenerator:
     def __call__(
         self, heatmap_vector: np.array, slide_id: str
     ) -> matplotlib.figure.Figure:
-        slide = get_slide(slide_id, self.config['slide_dir'])
-        coordinates = get_coordinates(slide_id, self.config['patch_coordinate_dir'])
+        slide = get_slide(slide_id, self.config["slide_dir"])
+        coordinates = get_coordinates(slide_id, self.config["patch_coordinate_dir"])
 
         heatmap = self.generate_heatmap(slide, heatmap_vector, coordinates)
 
         return heatmap
 
-    def scale_coordinates(self, coordinates: np.array, slide: str) -> np.array:
-        scaling_factor = (
-            slide.level_dimensions[0][0]
-            / slide.level_dimensions[self.config["level_for_visualizing_heatmap"]][0]
-        )
-        return coordinates / scaling_factor
+    # def scale_coordinates(self, coordinates: np.array, slide: str) -> np.array:
+    #     scaling_factor = (
+    #         slide.level_dimensions[0][0]
+    #         / slide.level_dimensions[self.config["level_for_visualizing_heatmap"]][0]
+    #     )
+    #     return coordinates / scaling_factor
 
     def get_image(self, slide: str) -> np.array:
         return np.array(
@@ -44,7 +40,9 @@ class HeatmapGenerator:
     ) -> matplotlib.figure.Figure:
         img = self.get_image(slide)
         patch_size = self.get_patch_size_for_plotting(slide)
-        scaled_coordinates = self.scale_coordinates(coordinates, slide)
+        scaled_coordinates = scale_coordinates(
+            coordinates, slide, self.config["level_for_visualizing_heatmap"]
+        )
 
         if self.config["model"] == "NaivePoolingClassifier":
             cmap = matplotlib.colormaps["seismic"]
