@@ -8,6 +8,7 @@ from pathlib import Path
 from openslide import OpenSlide
 
 
+# refactor using functions in utils.utils
 class HeatmapGenerator:
     def __init__(self, config: dict) -> None:
         self.config = config

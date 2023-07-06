@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from source.utils import GlobalGatedAttentionPooling
+from source.model_components import GlobalGatedAttentionPooling
 
 
 class Classifier(nn.Module):
