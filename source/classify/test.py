@@ -6,17 +6,18 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
 
-with open("config/test.yaml", "r") as f:
+with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 logger = WandbLogger(save_dir=config["output_dir"], project="wsi_classification_dev")
 
 trainer = Trainer(logger=logger)
 config["experiment_log_dir"] = logger.experiment._settings.sync_dir
+config['fold'] = 0
 
 model = Model(config)
 ckpt = torch.load(
-    "/home/rens/repos/pathology_classification/output/wandb/run-20230706_092001-lhn8npk3/checkpoints/epoch=8-step=4896.ckpt"
+    "/home/rens/repos/pathology_classification/output/wandb/run-20230706_135215-5x9qil9d/checkpoints/epoch=0-step=544.ckpt"
 )
 model.load_state_dict(ckpt["state_dict"])
 model.eval()

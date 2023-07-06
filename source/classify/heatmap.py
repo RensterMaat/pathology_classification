@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from pathlib import Path
 from openslide import OpenSlide
+from source.utils.utils import get_slide, get_coordinates, find_coordinates_file_path, find_slide_file_path
 
 
-# refactor using functions in utils.utils
 class HeatmapGenerator:
     def __init__(self, config: dict) -> None:
         self.config = config
@@ -16,20 +16,12 @@ class HeatmapGenerator:
     def __call__(
         self, heatmap_vector: np.array, slide_id: str
     ) -> matplotlib.figure.Figure:
-        slide = self.get_slide(slide_id)
-        coordinates = self.get_coordinates(slide_id)
+        slide = get_slide(slide_id, self.config['slide_dir'])
+        coordinates = get_coordinates(slide_id, self.config['patch_coordinate_dir'])
 
         heatmap = self.generate_heatmap(slide, heatmap_vector, coordinates)
 
         return heatmap
-
-    def get_slide(self, slide_id: str) -> OpenSlide:
-        slide_file_path = self.find_slide_file_path(slide_id)
-        return OpenSlide(slide_file_path)
-
-    def get_coordinates(self, slide_id: str) -> np.array:
-        coordinates_file_path = self.find_coordinates_file_path(slide_id)
-        return np.array(h5py.File(coordinates_file_path, "r")["coords"])
 
     def scale_coordinates(self, coordinates: np.array, slide: str) -> np.array:
         scaling_factor = (
@@ -93,13 +85,3 @@ class HeatmapGenerator:
             / slide.level_dimensions[self.config["level_for_visualizing_heatmap"]][0]
         )
         return self.config["patch_size_during_feature_extraction"] / scaling_factor
-
-    def find_slide_file_path(self, slide_id: str) -> str:
-        for dir, _, files in os.walk(self.config["slide_dir"]):
-            for file in files:
-                if ".".join(file.split(".")[:-1]) == slide_id:
-                    return str(Path(dir) / file)
-
-    def find_coordinates_file_path(self, slide_id: str) -> str:
-        root = Path(self.config["patch_coordinate_dir"])
-        return str(root / slide_id / (slide_id + ".h5"))

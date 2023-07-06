@@ -4,12 +4,12 @@ import pandas as pd
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 from torchmetrics.classification import BinaryAUROC
-from source.classifiers import (
+from classifiers import (
     AttentionClassifier,
     NaivePoolingClassifier,
     TransformerClassifier,
 )
-from source.heatmap import HeatmapGenerator
+from heatmap import HeatmapGenerator
 from pathlib import Path
 
 
