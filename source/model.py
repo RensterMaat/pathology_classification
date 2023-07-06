@@ -75,6 +75,7 @@ class Model(pl.LightningModule):
                 x, return_heatmap_vector=self.config["generate_heatmaps"]
             )
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
+            heatmap.axes[0].set_title(f"Label: {y.argmax().cpu()} - Prediction: {y_hat[0,1].cpu():.3f}")
 
             heatmap_dir = Path(self.config["experiment_log_dir"]) / "heatmaps"
             heatmap_dir.mkdir(exist_ok=True)
