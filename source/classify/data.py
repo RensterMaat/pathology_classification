@@ -31,7 +31,7 @@ class PreextractedFeatureDataset(Dataset):
         return x, y, features_path
 
 
-class DataModule(pl.LightningDataModule):
+class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
         self.manifest_directory = (
@@ -39,7 +39,7 @@ class DataModule(pl.LightningDataModule):
         )
         self.config = config
 
-    def setup(self, stage="fit") -> None:
+    def setup(self, stage: str = "fit") -> None:
         if stage == "fit":
             self.train_dataset = PreextractedFeatureDataset(
                 self.manifest_directory / "train.csv", self.config

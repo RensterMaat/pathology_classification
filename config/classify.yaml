@@ -41,3 +41,6 @@ level_for_visualizing_heatmap: 7
 dpi: 80
 patch_size_during_feature_extraction: 4096
 level_during_feature_extraction: 1
+
+# extraction
+extraction_batch_size: 8

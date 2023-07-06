@@ -1,7 +1,7 @@
 import yaml
 import torch
 from model import Model
-from data import DataModule
+from data import ClassificationDataModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
@@ -22,7 +22,7 @@ ckpt = torch.load(
 model.load_state_dict(ckpt["state_dict"])
 model.eval()
 
-datamodule = DataModule(config)
+datamodule = ClassificationDataModule(config)
 datamodule.setup(stage="test")
 
 trainer.test(model, datamodule)

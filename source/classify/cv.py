@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
 from model import Model
-from data import DataModule
+from data import ClassificationDataModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -34,7 +34,7 @@ for fold in range(n_folds):
         ],
     )
 
-    datamodule = DataModule(config)
+    datamodule = ClassificationDataModule(config)
     model = Model(config)
 
     trainer.fit(model, datamodule)
