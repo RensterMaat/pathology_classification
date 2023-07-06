@@ -13,7 +13,7 @@ class GlobalGatedAttentionPooling(nn.Module):
         )
 
         self.attention_c = nn.Linear(*[hidden_dim, output_dim])
-        self.softmax = nn.Softmax(dim=0)
+        # self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         a = self.attention_a(x)
@@ -21,6 +21,8 @@ class GlobalGatedAttentionPooling(nn.Module):
         A = a.mul(b)
 
         A = self.attention_c(A)
-        attention = self.softmax(A)
 
-        return attention
+        return A
+        # attention = self.softmax(A)
+
+        # return attention

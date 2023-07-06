@@ -59,16 +59,20 @@ class AttentionClassifier(Classifier):
             output_dim=config["n_classes"],
             dropout=config["dropout"],
         )
+
         self.classifiers = nn.ModuleList(
             [nn.Linear(config["n_features"], 1) for _ in range(config["n_classes"])]
         )
+
+        self.attention_softmax = nn.Softmax(dim=0)
 
     def forward(self, x, return_heatmap_vector=False):
         x = x[0]
 
         x = self.phi(x)
 
-        attention = self.attention_pooling(x)
+        attention_logits = self.attention_pooling(x)
+        attention = self.attention_softmax(attention_logits)
         slide_representation = torch.matmul(attention.transpose(0, 1), x)
 
         slide_logits = []
@@ -80,7 +84,7 @@ class AttentionClassifier(Classifier):
         slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
-            return slide_prediction, attention
+            return slide_prediction, attention_logits
 
         return slide_prediction
 
@@ -131,13 +135,16 @@ class TransformerClassifier(Classifier):
 
         self.classifier = nn.Linear(config["n_features"], config["n_classes"])
 
+        self.attention_softmax = nn.Softmax(dim=0)
+
     def forward(self, x, return_heatmap_vector=False):
         x = x[0]
 
         x = self.phi(x)
         x = self.transformer(x)
 
-        attention = self.attention_pooling(x)
+        attention_logits = self.attention_pooling(x)
+        attention = self.attention_softmax(attention_logits)
         slide_representation = torch.matmul(attention.transpose(0, 1), x)
 
         slide_representation = self.rho(slide_representation)
@@ -145,9 +152,6 @@ class TransformerClassifier(Classifier):
         slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
-            return slide_prediction, attention
+            return slide_prediction, attention_logits
 
         return slide_prediction
-
-    def get_heatmap(self, x):
-        pass

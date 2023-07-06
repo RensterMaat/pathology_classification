@@ -75,7 +75,11 @@ class Model(pl.LightningModule):
                 x, return_heatmap_vector=self.config["generate_heatmaps"]
             )
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
-            save_path = Path(self.config["experiment_log_dir"]) / (slide_id + ".jpg")
+
+            heatmap_dir = Path(self.config["experiment_log_dir"]) / "heatmaps"
+            heatmap_dir.mkdir(exist_ok=True)
+
+            save_path = heatmap_dir / (slide_id + ".jpg")
             heatmap.savefig(save_path)
             plt.close("all")
         else:
@@ -96,9 +100,9 @@ class Model(pl.LightningModule):
         results = pd.DataFrame(
             self.test_outputs, columns=["slide_id", self.config["target"], "prediction"]
         )
-        results.to_csv(
-            Path(self.config["experiment_log_dir"]) / "test_output.csv", index=False
-        )
+        results_dir = Path(self.config["experiment_log_dir"]) / "results"
+        results_dir.mkdir(exist_ok=True)
+        results.to_csv(results_dir / "test_output.csv", index=False)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.AdamW(
@@ -107,6 +111,3 @@ class Model(pl.LightningModule):
             weight_decay=float(self.config["weight_decay"]),
         )
         return optimizer
-
-
-

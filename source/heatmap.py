@@ -57,7 +57,9 @@ class HeatmapGenerator:
             cmap = matplotlib.colormaps["seismic"]
         else:
             cmap = matplotlib.colormaps["Reds"]
-            heatmap_vector = heatmap_vector / heatmap_vector.max(axis=0).values
+            heatmap_vector = (heatmap_vector - heatmap_vector.min(axis=0).values) / (
+                heatmap_vector.max(axis=0).values - heatmap_vector.min(axis=0).values
+            )
 
         if self.config["model"] == "TransformerClassifier":
             class_ix = 0
