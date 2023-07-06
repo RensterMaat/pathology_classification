@@ -28,10 +28,10 @@ def find_coordinates_file_path(slide_id: str, patch_coordinate_dir: os.PathLike)
 
 
 def scale_coordinates(
-    coordinates: np.array, slide: str, level_for_visualizing_heatmap: int
+    coordinates: np.array, slide: str, level: int
 ) -> np.array:
     scaling_factor = (
         slide.level_dimensions[0][0]
-        / slide.level_dimensions[level_for_visualizing_heatmap][0]
+        / slide.level_dimensions[level][0]
     )
     return coordinates / scaling_factor

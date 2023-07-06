@@ -19,13 +19,6 @@ class HeatmapGenerator:
 
         return heatmap
 
-    # def scale_coordinates(self, coordinates: np.array, slide: str) -> np.array:
-    #     scaling_factor = (
-    #         slide.level_dimensions[0][0]
-    #         / slide.level_dimensions[self.config["level_for_visualizing_heatmap"]][0]
-    #     )
-    #     return coordinates / scaling_factor
-
     def get_image(self, slide: str) -> np.array:
         return np.array(
             slide.read_region(
