@@ -51,7 +51,7 @@ class Model(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.train_auc.update(y_hat.squeeze(), y.squeeze().int())
 
-        self.log_dict({"train/loss": loss, "train/auc": self.train_auc.compute()})
+        self.log_dict({f"fold_{self.config['fold']}/train_loss": loss, f"fold_{self.config['fold']}/train_auc": self.train_auc.compute()})
 
         return loss
 
@@ -62,7 +62,7 @@ class Model(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.val_auc.update(y_hat.squeeze(), y.squeeze().int())
 
-        self.log_dict({"val/loss": loss, "val/auc": self.val_auc.compute()})
+        self.log_dict({f"fold_{self.config['fold']}/val_loss": loss, f"fold_{self.config['fold']}/val_auc": self.val_auc.compute()})
 
         return loss
 
@@ -94,7 +94,7 @@ class Model(pl.LightningModule):
             [slide_id, int(y[0, 1].detach().cpu()), float(y_hat[0, 1].detach().cpu())]
         )
         self.log_dict(
-            {"test/auc": self.test_auc.compute()}, on_step=False, on_epoch=True
+            {f"test/fold_{self.config['fold']}_auc": self.test_auc.compute()}, on_step=False, on_epoch=True
         )
 
     def on_test_epoch_end(self):
@@ -103,7 +103,7 @@ class Model(pl.LightningModule):
         )
         results_dir = Path(self.config["experiment_log_dir"]) / "results"
         results_dir.mkdir(exist_ok=True)
-        results.to_csv(results_dir / "test_output.csv", index=False)
+        results.to_csv(results_dir / f"fold_{self.config['fold']}_test_output.csv", index=False)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         optimizer = torch.optim.AdamW(
