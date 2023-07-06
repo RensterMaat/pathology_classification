@@ -25,12 +25,12 @@ for fold in range(n_folds):
 
     trainer = Trainer(
         accelerator='gpu',
-        max_epochs=2,
+        max_epochs=config['max_epochs'],
         logger=logger,
         callbacks=[
             EarlyStopping(
                 monitor=f'fold_{fold}/val_auc',
-                patience=10,
+                patience=config['patience'],
                 mode='max'
             ),
             ModelCheckpoint(
