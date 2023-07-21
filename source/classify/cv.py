@@ -1,6 +1,6 @@
 import yaml
 from pathlib import Path
-from model import Model
+from source.classify.classifier_framework import ClassifierFramework
 from data import ClassificationDataModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
@@ -35,7 +35,7 @@ for fold in range(n_folds):
     )
 
     datamodule = ClassificationDataModule(config)
-    model = Model(config)
+    model = ClassifierFramework(config)
 
     trainer.fit(model, datamodule)
     trainer.test(model, datamodule)

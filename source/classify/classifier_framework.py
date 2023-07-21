@@ -13,7 +13,7 @@ from heatmap import HeatmapGenerator
 from pathlib import Path
 
 
-class Model(pl.LightningModule):
+class ClassifierFramework(pl.LightningModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
 
