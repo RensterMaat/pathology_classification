@@ -36,7 +36,7 @@ class ExtractionDataModule(pl.LightningDataModule):
         self.slide_id = slide_id
         self.config = config
 
-    def setup(self, stage: str) -> None:
+    def setup(self, stage:str = None) -> None:
         self.dataset = PatchSlideDataset(self.slide_id, self.config)
 
     def test_dataloader(self) -> DataLoader:
