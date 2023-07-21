@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
+from abc import ABC, abstractmethod
 from model_components import GlobalGatedAttentionPooling
 
 
-class Classifier(nn.Module):
+class Classifier(nn.Module, ABC):
     def __init__(self, config: dict) -> None:
         super().__init__()
 
@@ -15,6 +16,12 @@ class Classifier(nn.Module):
             self.final_activation = nn.Sigmoid()
         else:
             raise NotImplementedError
+
+    @abstractmethod    
+    def forward(
+        self, x: torch.Tensor, return_heatmap_vector: bool = False
+    ) -> torch.Tensor:
+        pass
 
 
 class NaivePoolingClassifier(Classifier):

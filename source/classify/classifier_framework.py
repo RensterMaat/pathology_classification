@@ -20,11 +20,11 @@ class ClassifierFramework(pl.LightningModule):
         self.config = config
 
         if config["classifier"] == "NaivePoolingClassifier":
-            self.model = NaivePoolingClassifier(config)
+            self.classifier = NaivePoolingClassifier(config)
         elif config["classifier"] == "AttentionClassifier":
-            self.model = AttentionClassifier(config)
+            self.classifier = AttentionClassifier(config)
         elif config["classifier"] == "TransformerClassifier":
-            self.model = TransformerClassifier(config)
+            self.classifier = TransformerClassifier(config)
         else:
             raise NotImplementedError
 
@@ -42,11 +42,11 @@ class ClassifierFramework(pl.LightningModule):
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False
     ) -> torch.Tensor:
-        return self.model(x, return_heatmap_vector)
+        return self.classifier(x, return_heatmap_vector)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         x, y, _ = batch
-        y_hat = self.model(x)
+        y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
         self.train_auc.update(y_hat.squeeze(), y.squeeze().int())
@@ -62,7 +62,7 @@ class ClassifierFramework(pl.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         x, y, _ = batch
-        y_hat = self.model(x)
+        y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
         self.val_auc.update(y_hat.squeeze(), y.squeeze().int())
@@ -81,7 +81,7 @@ class ClassifierFramework(pl.LightningModule):
         slide_id = Path(features_path[0]).stem
 
         if self.config["generate_heatmaps"]:
-            y_hat, heatmap_vector = self.model.forward(
+            y_hat, heatmap_vector = self.classifier.forward(
                 x, return_heatmap_vector=self.config["generate_heatmaps"]
             )
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
@@ -96,7 +96,7 @@ class ClassifierFramework(pl.LightningModule):
             heatmap.savefig(save_path)
             plt.close("all")
         else:
-            y_hat = self.model.forward(
+            y_hat = self.classifier.forward(
                 x, return_heatmap_vector=self.config["generate_heatmaps"]
             )
 
