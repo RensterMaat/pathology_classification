@@ -3,13 +3,13 @@ from pathlib import Path
 from source.classify.heatmap import HeatmapGenerator
 from source.classify.data import PreextractedFeatureDataset
 
-with open("config/test.yaml", "r") as f:
+with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
-
+config["fold"] = 0
 
 def test_heatmap():
     dataset = PreextractedFeatureDataset(
-        Path(config["manifest_dir"]) / "train.csv", config
+        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
     )
 
     x, y, features_path = dataset[0]

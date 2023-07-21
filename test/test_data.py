@@ -1,20 +1,22 @@
 import yaml
-from source.classify.data import PreextractedFeatureDataset, DataModule
+from pathlib import Path
+from source.classify.data import PreextractedFeatureDataset, ClassificationDataModule
 
-with open("config/test.yaml", "r") as f:
+with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 
+config["fold"] = 0
 
 def test_dataset():
     dataset = PreextractedFeatureDataset(
-        "/mnt/hpc/rens/hipt/data/fold_dir_dcb/fold_0/train.csv", config
+        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
     )
 
     x, y, _ = dataset[0]
 
 
 def test_datamodule():
-    datamodule = DataModule(config)
+    datamodule = ClassificationDataModule(config)
 
     datamodule.setup(stage="fit")
     train_dl = datamodule.train_dataloader()

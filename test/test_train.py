@@ -1,14 +1,15 @@
 import yaml
 from pytorch_lightning import Trainer
-from source.data import DataModule
+from source.classify.data import ClassificationDataModule
 from source.classify.classifier_framework import ClassifierFramework
 
 
 with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
+config["fold"] = 0
+config['generate_heatmaps'] = False
 
-
-datamodule = DataModule(config)
+datamodule = ClassificationDataModule(config)
 model = ClassifierFramework(config)
 
 
@@ -35,7 +36,7 @@ def test_testing_loop():
     trainer = Trainer(accelerator="cpu")
     config["experiment_log_dir"] = trainer.logger.log_dir
 
-    datamodule = DataModule(config)
+    datamodule = ClassificationDataModule(config)
     model = ClassifierFramework(config)
 
     trainer.test(model, datamodule)
