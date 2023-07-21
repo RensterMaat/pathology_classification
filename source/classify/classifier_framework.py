@@ -19,11 +19,11 @@ class ClassifierFramework(pl.LightningModule):
 
         self.config = config
 
-        if config["model"] == "NaivePoolingClassifier":
+        if config["classifier"] == "NaivePoolingClassifier":
             self.model = NaivePoolingClassifier(config)
-        elif config["model"] == "AttentionClassifier":
+        elif config["classifier"] == "AttentionClassifier":
             self.model = AttentionClassifier(config)
-        elif config["model"] == "TransformerClassifier":
+        elif config["classifier"] == "TransformerClassifier":
             self.model = TransformerClassifier(config)
         else:
             raise NotImplementedError

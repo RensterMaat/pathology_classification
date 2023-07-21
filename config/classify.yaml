@@ -9,8 +9,8 @@ output_dir: "/home/rens/repos/pathology_classification/output"
 target: label
 n_classes: 2
 
-# model
-model: AttentionClassifier
+# classifier
+classifier: AttentionClassifier
 n_features: 192
 final_activation: softmax
 dropout: False
