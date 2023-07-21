@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from abc import ABC, abstractmethod
-from model_components import GlobalGatedAttentionPooling
+from source.classify.model_components import GlobalGatedAttentionPooling
 
 
 class Classifier(nn.Module, ABC):

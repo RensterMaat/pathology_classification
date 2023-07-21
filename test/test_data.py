@@ -1,5 +1,5 @@
 import yaml
-from source.data import PreextractedFeatureDataset, DataModule
+from source.classify.data import PreextractedFeatureDataset, DataModule
 
 with open("config/test.yaml", "r") as f:
     config = yaml.safe_load(f)

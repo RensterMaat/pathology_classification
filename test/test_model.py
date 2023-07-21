@@ -1,14 +1,14 @@
 import yaml
 from pathlib import Path
-from source.classifiers import (
+from source.classify.classifiers import (
     AttentionClassifier,
     NaivePoolingClassifier,
     TransformerClassifier,
 )
-from source.model import (
-    Model,
+from source.classify.classifier_framework import (
+    ClassifierFramework,
 )
-from source.data import PreextractedFeatureDataset, DataModule
+from source.classify.data import PreextractedFeatureDataset, DataModule
 
 
 with open("config/test.yaml", "r") as f:

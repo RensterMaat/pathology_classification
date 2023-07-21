@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
-from source.heatmap import HeatmapGenerator
-from source.data import PreextractedFeatureDataset
+from source.classify.heatmap import HeatmapGenerator
+from source.classify.data import PreextractedFeatureDataset
 
 with open("config/test.yaml", "r") as f:
     config = yaml.safe_load(f)

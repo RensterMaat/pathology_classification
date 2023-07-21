@@ -1,15 +1,15 @@
 import yaml
 from pytorch_lightning import Trainer
 from source.data import DataModule
-from source.model import Model
+from source.classify.classifier_framework import ClassifierFramework
 
 
-with open("config/test.yaml", "r") as f:
+with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 
 datamodule = DataModule(config)
-model = Model(config)
+model = ClassifierFramework(config)
 
 
 def test_fast_dev_run():
@@ -36,6 +36,6 @@ def test_testing_loop():
     config["experiment_log_dir"] = trainer.logger.log_dir
 
     datamodule = DataModule(config)
-    model = Model(config)
+    model = ClassifierFramework(config)
 
     trainer.test(model, datamodule)
