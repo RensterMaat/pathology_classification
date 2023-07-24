@@ -1,14 +1,16 @@
 import numpy as np
 import os
 import torch
+import json
 from torch.nn.functional import conv2d
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_holes
-from skimage.color import rgb_to_hsv
+from matplotlib.colors import rgb_to_hsv
 from scipy.ndimage import median_filter
 from openslide import OpenSlide
 from math import ceil, floor
 from typing import Optional
+from pathlib import Path
 
 
 class Preprocessor:
@@ -23,8 +25,8 @@ class Preprocessor:
         self.config = config
 
     def __call__(
-        self, slide_path: str | os.Pathlike, segmentation_path: str | os.Pathlike = None
-    ) -> dict(str, list[tuple]):
+        self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
+    ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
         """
         Extracts tiles from a whole-slide image. Defaults to using the Otsu thresholding method
         to create a segmentation if no segmentation is provided.
@@ -39,24 +41,48 @@ class Preprocessor:
 
         slide = OpenSlide(str(slide_path))
 
-        if segmentation_path is None: # default to Otsu thresholding
-            img = slide.read_region(
-                (0, 0),
-                self.config["preprocessing_level"],
-                slide.level_dimensions[self.config["preprocessing_level"]],
-            )
+        if segmentation_path is None:  # default to Otsu thresholding
+            img = np.array(
+                slide.read_region(
+                    (0, 0),
+                    self.config["preprocessing_level"],
+                    slide.level_dimensions[self.config["preprocessing_level"]],
+                )
+            )[:, :, :3]
             segmentation = self.create_segmentation(img)
-        else: # use user-supplied segmentation
+        else:  # use user-supplied segmentation
             raise NotImplementedError(
                 "Preprocessing based on user-supplied segmentation is not yet implemented."
             )
 
-        tiles = self.tessellate(segmentation)
-
         scaling_factor = slide.level_downsamples[self.config["preprocessing_level"]]
+        tiles = self.tessellate(segmentation, scaling_factor)
         scaled_tiles = self.scale_tiles(tiles, scaling_factor)
 
-        return scaled_tiles
+        self.save_tiles(scaled_tiles, slide_path)
+
+    def save_tiles(
+        self,
+        tiles: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
+        slide_path: str | os.PathLike,
+    ) -> None:
+        """
+        Saves the tiles to a JSON file.
+        
+        Args:
+            tiles: dictionary containing the tiles for each cross-section.
+            slide_path: path to the whole-slide image.
+            
+        """
+        for cross_section in tiles:
+            slide_name = Path(slide_path).stem
+            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+            cross_section_save_path = (
+                Path(self.config["tile_coordinates_dir"]) / cross_section_name
+            )
+
+            with open(cross_section_save_path, "w") as f:
+                json.dump(tiles[cross_section], f)
 
     def scale_tiles(
         self,
@@ -111,21 +137,23 @@ class Preprocessor:
             segmentation, area_threshold=self.config["hole_area_threshold"]
         )
 
+        segmentation = segmentation[:, :, np.newaxis]
+
         return segmentation
 
     def tessellate(
-        self, segmentation: np.ndarray
+        self, segmentation: np.ndarray, scaling_factor: float = 1.0
     ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
         """
         Extracts tiles from a segmentation.
-        
+
         Args:
             segmentation: segmentation of the whole-slide image as (height, width, cross-section).
-            
+
         Returns:
             tile_information: dictionary containing the location and shape of the tiles for each cross-section.
         """
-        shape = self.config["tile_dimensions"]
+        shape = [int(dim / scaling_factor) for dim in self.config["tile_dimensions"]]
 
         if isinstance(segmentation, torch.Tensor):
             segmentation = segmentation.numpy()
@@ -140,31 +168,8 @@ class Preprocessor:
                 "Argument for `shape` exceeds the height and/or width of the segmentation.",
             )
         # set the stride equal to the shape if it is None
-        if stride is None:
-            stride = shape
+        stride = self.config["stride"] if "stride" in self.config.keys() else shape
 
-        # perform checks if an exclusion map was provided
-        if exclusion_map is not None:
-            # convert torch.Tensor to numpy.ndarray
-            if isinstance(exclusion_map, torch.Tensor):
-                exclusion_map = exclusion_map.numpy()
-            # check if the exclusion map shape has two or three (last axis is 1) axes
-            if len(exclusion_map.shape) == 3 and exclusion_map.shape[-1] == 1:
-                exclusion_map = exclusion_map[..., 0]
-            elif len(exclusion_map.shape) != 2:
-                raise ValueError(
-                    "Argument for `exclusion_map` has an invalid shape "
-                    "(expected 2 axes or 3 axes with only one channel)."
-                )
-            # check if the exclusion map shape is equal to the segmentation shape
-            if (
-                exclusion_map.shape[0] != segmentation.shape[0]
-                or exclusion_map.shape[1] != segmentation.shape[1]
-            ):
-                raise ValueError(
-                    "Argument for `exclusion_map` does not match the spatial size "
-                    "of the argument for `segmentation`."
-                )
         # initialize dictionary to store tile location and shapes
         tile_information = {}
 
@@ -249,29 +254,6 @@ class Preprocessor:
                 extraction_region = np.where(
                     filtered_crop >= self.config["min_tissue_fraction"], 1, 0
                 )
-
-                # find the regions to be excluded from tile extraction
-                # if an exclusion map was provided
-                if exclusion_map is not None:
-                    # crop the cross-section and prepare for convolution
-                    exclusion_map_crop = exclusion_map[
-                        top_left[1] : top_left[1] + height,
-                        top_left[0] : top_left[0] + width,
-                    ][None, None, ...].astype(np.float32)
-                    # convolve crop with filter
-                    filtered_exclusion_crop = conv2d(
-                        torch.from_numpy(exclusion_map_crop),
-                        weight=filter,
-                        bias=None,
-                        stride=stride,
-                        padding="valid",
-                    )[0, 0, ...].numpy()
-                    # find region to exclude from extraction
-                    exclusion_region = np.where(filtered_exclusion_crop > 0, 1, 0)
-                    # remove exclusion region from extraction region
-                    extraction_region = np.where(
-                        extraction_region - exclusion_region == 1, 1, 0
-                    )
 
                 # find the indices of the tiles that exceed the minimum faction of tissue
                 indices = np.nonzero(extraction_region)
