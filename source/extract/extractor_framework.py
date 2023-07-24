@@ -1,6 +1,6 @@
 import torch
 import pytorch_lightning as pl
-from extractors import RandomExtractor
+from source.extract.extractors import RandomExtractor
 
 
 class ExtractorFramework(pl.LightningModule):
@@ -8,7 +8,7 @@ class ExtractorFramework(pl.LightningModule):
         super().__init__()
 
         self.config = config
-        self.extractor = RandomExtractor()
+        self.extractor = RandomExtractor(config)
 
         self.all_features = []
 

@@ -7,9 +7,10 @@ with open("config/classify.yaml", "r") as f:
 
 config["fold"] = 0
 
+
 def test_dataset():
     dataset = PreextractedFeatureDataset(
-        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
+        Path(config["manifest_dir"]) / f'fold_{config["fold"]}' / "train.csv", config
     )
 
     x, y, _ = dataset[0]

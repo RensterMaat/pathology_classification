@@ -17,7 +17,7 @@ class Classifier(nn.Module, ABC):
         else:
             raise NotImplementedError
 
-    @abstractmethod    
+    @abstractmethod
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False
     ) -> torch.Tensor:

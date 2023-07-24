@@ -7,7 +7,7 @@ from source.classify.classifier_framework import ClassifierFramework
 with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 config["fold"] = 0
-config['generate_heatmaps'] = False
+config["generate_heatmaps"] = False
 
 datamodule = ClassificationDataModule(config)
 model = ClassifierFramework(config)

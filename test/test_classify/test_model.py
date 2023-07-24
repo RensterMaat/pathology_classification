@@ -12,9 +12,10 @@ with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 config["fold"] = 0
 
+
 def test_naive_pooling_classifier():
     dataset = PreextractedFeatureDataset(
-        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
+        Path(config["manifest_dir"]) / f'fold_{config["fold"]}' / "train.csv", config
     )
     x, _, _ = dataset[0]
 
@@ -26,7 +27,7 @@ def test_naive_pooling_classifier():
 
 def test_attention_classifier():
     dataset = PreextractedFeatureDataset(
-        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
+        Path(config["manifest_dir"]) / f'fold_{config["fold"]}' / "train.csv", config
     )
     x, _, _ = dataset[0]
 
@@ -39,7 +40,7 @@ def test_attention_classifier():
 
 def test_transformer_classifier():
     dataset = PreextractedFeatureDataset(
-        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
+        Path(config["manifest_dir"]) / f'fold_{config["fold"]}' / "train.csv", config
     )
     x, _, _ = dataset[0]
     model = TransformerClassifier(config)

@@ -7,9 +7,10 @@ with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)
 config["fold"] = 0
 
+
 def test_heatmap():
     dataset = PreextractedFeatureDataset(
-        Path(config['manifest_dir']) / f'fold_{config["fold"]}' / 'train.csv', config
+        Path(config["manifest_dir"]) / f'fold_{config["fold"]}' / "train.csv", config
     )
 
     x, y, features_path = dataset[0]

@@ -24,7 +24,6 @@ class RandomExtractor(Extractor):
 
     def forward(self, x):
         return np.random.normal(size=(x.shape[0], 32))
-    
+
     def transform(self, x):
         return x
-
