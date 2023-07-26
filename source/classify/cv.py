@@ -16,7 +16,7 @@ log_dir = Path(config["experiment_log_dir"])
 
 logger.experiment.config.update(config)
 
-n_folds = len(list(Path(config["manifest_dir"]).iterdir()))
+n_folds = len(list(Path(config["cross_val_splits_dir"]).iterdir()))
 for fold in range(n_folds):
     config["fold"] = fold
 

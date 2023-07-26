@@ -13,9 +13,9 @@ def test_extract():
         accelerator="cpu",
     )
 
-    slide_dir = Path(config["slide_dir"]) / "primary" / "vumc"
+    slides_dir = Path(config["slides_dir"]) / "primary" / "vumc"
 
-    slide_path = list(slide_dir.iterdir())[0]
+    slide_path = list(slides_dir.iterdir())[0]
     slide_id = slide_path.stem
 
     datamodule = ExtractionDataModule(slide_id, config)

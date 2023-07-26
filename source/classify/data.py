@@ -34,23 +34,23 @@ class PreextractedFeatureDataset(Dataset):
 class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
-        self.manifest_directory = (
-            Path(config["manifest_dir"]) / f"fold_{config['fold']}"
+        self.cross_val_splits_directory = (
+            Path(config["cross_val_splits_dir"]) / f"fold_{config['fold']}"
         )
         self.config = config
 
     def setup(self, stage: str = "fit") -> None:
         if stage == "fit":
             self.train_dataset = PreextractedFeatureDataset(
-                self.manifest_directory / "train.csv", self.config
+                self.cross_val_splits_directory / "train.csv", self.config
             )
             self.val_dataset = PreextractedFeatureDataset(
-                self.manifest_directory / "tune.csv", self.config
+                self.cross_val_splits_directory / "tune.csv", self.config
             )
 
         if stage == "test":
             self.test_dataset = PreextractedFeatureDataset(
-                self.manifest_directory / "test.csv", self.config
+                self.cross_val_splits_directory / "test.csv", self.config
             )
 
     def train_dataloader(self) -> DataLoader:

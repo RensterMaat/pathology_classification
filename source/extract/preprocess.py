@@ -1,7 +1,8 @@
-import numpy as np
 import os
+import argparse
 import torch
 import json
+import numpy as np
 from torch.nn.functional import conv2d
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_holes
@@ -11,6 +12,9 @@ from openslide import OpenSlide
 from math import ceil, floor
 from typing import Optional
 from pathlib import Path
+from tqdm import tqdm
+
+from source.utils.utils import load_config
 
 
 class Preprocessor:
@@ -23,6 +27,8 @@ class Preprocessor:
 
     def __init__(self, config: dict) -> None:
         self.config = config
+
+        self.save_dir_name = f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
@@ -55,11 +61,16 @@ class Preprocessor:
                 "Preprocessing based on user-supplied segmentation is not yet implemented."
             )
 
-        scaling_factor = slide.level_downsamples[self.config["preprocessing_level"]]
+        scaling_factor = (
+            slide.level_downsamples[self.config["preprocessing_level"]]
+            / slide.level_downsamples[self.config["extraction_level"]]
+        )
         tiles = self.tessellate(segmentation, scaling_factor)
         scaled_tiles = self.scale_tiles(tiles, scaling_factor)
 
         self.save_tiles(scaled_tiles, slide_path)
+
+        return scaled_tiles
 
     def save_tiles(
         self,
@@ -68,17 +79,22 @@ class Preprocessor:
     ) -> None:
         """
         Saves the tiles to a JSON file.
-        
+
         Args:
             tiles: dictionary containing the tiles for each cross-section.
             slide_path: path to the whole-slide image.
-            
+
         """
         for cross_section in tiles:
             slide_name = Path(slide_path).stem
             cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+
+            save_dir_path = Path(self.config["patch_coordinates_dir"]) / self.save_dir_name
+            if not save_dir_path.exists():
+                save_dir_path.mkdir()
+
             cross_section_save_path = (
-                Path(self.config["tile_coordinates_dir"]) / cross_section_name
+                save_dir_path / cross_section_name
             )
 
             with open(cross_section_save_path, "w") as f:
@@ -153,7 +169,7 @@ class Preprocessor:
         Returns:
             tile_information: dictionary containing the location and shape of the tiles for each cross-section.
         """
-        shape = [int(dim / scaling_factor) for dim in self.config["tile_dimensions"]]
+        shape = [int(dim / scaling_factor) for dim in self.config["patch_dimensions"]]
 
         if isinstance(segmentation, torch.Tensor):
             segmentation = segmentation.numpy()
@@ -302,3 +318,24 @@ class Preprocessor:
         cmin, cmax = np.where(cols)[0][[0, -1]]
 
         return rmin, rmax, cmin, cmax
+
+
+def main(config):
+    preprocessor = Preprocessor(config)
+
+    for slide in tqdm(list(Path(config["slides_dir"]).glob("*.ndpi"))):
+        preprocessor(slide)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Extracts tiles from a whole-slide image."
+    )
+    parser.add_argument(
+        "config_path",
+    )
+    args = parser.parse_args()
+
+    config = load_config(args.config_path)
+
+    main(config)

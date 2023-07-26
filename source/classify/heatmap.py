@@ -12,8 +12,8 @@ class HeatmapGenerator:
     def __call__(
         self, heatmap_vector: np.array, slide_id: str
     ) -> matplotlib.figure.Figure:
-        slide = get_slide(slide_id, self.config["slide_dir"])
-        coordinates = get_coordinates(slide_id, self.config["patch_coordinate_dir"])
+        slide = get_slide(slide_id, self.config["slides_dir"])
+        coordinates = get_coordinates(slide_id, self.config["patch_coordinates_dir"])
 
         heatmap = self.generate_heatmap(slide, heatmap_vector, coordinates)
 

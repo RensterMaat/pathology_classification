@@ -10,8 +10,8 @@ class PatchSlideDataset(Dataset):
         self.slide_id = slide_id
         self.config = config
 
-        self.slide = get_slide(slide_id, config["slide_dir"])
-        coordinates = get_coordinates(slide_id, config["patch_coordinate_dir"])
+        self.slide = get_slide(slide_id, config["slides_dir"])
+        coordinates = get_coordinates(slide_id, config["patch_coordinates_dir"])
         self.scaled_coordinates = scale_coordinates(
             coordinates, self.slide, config["level_during_feature_extraction"]
         )
