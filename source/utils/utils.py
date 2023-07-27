@@ -69,5 +69,5 @@ def get_patch_coordinates_dir_name(config):
 def get_features_dir_name(config):
     return (
         Path(config["features_dir"])
-        / f"extraction_level={config['extraction_level']}_extractor={config['extractor']}"
+        / f"extraction_level={config['extraction_level']}_extractor={config['extractor_model']}"
     )

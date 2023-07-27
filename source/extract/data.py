@@ -31,7 +31,8 @@ class CrossSectionDataset(Dataset):
             size=self.patch_coordinates[ix][2],
         )
 
-        return torch.tensor(np.array(img)).float()[:, :, :-1]
+        out = torch.tensor(np.array(img)).float()[:, :, :-1].permute((2, 0, 1)) / 255
+        return out
 
     def setup_patch_coordinates(self):
         patch_coordinates_dir = Path(

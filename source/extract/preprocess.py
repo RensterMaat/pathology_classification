@@ -336,6 +336,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    config = load_config(args.config_path)
+    config = load_config(args.config)
 
     main(config)
