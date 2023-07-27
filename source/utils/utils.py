@@ -56,3 +56,6 @@ def load_config(config_path: str | os.PathLike) -> dict:
             config[f"{directory}_dir"] = Path(config["dataset_dir"]) / directory
 
     return config
+
+def get_patch_coordinates_dir_name(config):
+    return f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"

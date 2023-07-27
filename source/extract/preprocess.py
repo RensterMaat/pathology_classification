@@ -14,7 +14,7 @@ from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
 
-from source.utils.utils import load_config
+from source.utils.utils import load_config, get_patch_coordinates_dir_name
 
 
 class Preprocessor:
@@ -28,7 +28,7 @@ class Preprocessor:
     def __init__(self, config: dict) -> None:
         self.config = config
 
-        self.save_dir_name = f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
+        self.save_dir_name = get_patch_coordinates_dir_name(config)
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
@@ -87,7 +87,7 @@ class Preprocessor:
         """
         for cross_section in tiles:
             slide_name = Path(slide_path).stem
-            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+            cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
 
             save_dir_path = Path(self.config["patch_coordinates_dir"]) / self.save_dir_name
             if not save_dir_path.exists():
