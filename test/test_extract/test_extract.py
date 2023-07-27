@@ -3,9 +3,9 @@ from pytorch_lightning import Trainer
 from source.extract.extractor_framework import ExtractorFramework
 from source.extract.data import ExtractionDataModule
 from pathlib import Path
+from source.utils.utils import get_patch_coordinates_dir_name, load_config
 
-with open("config/classify.yaml", "r") as f:
-    config = yaml.safe_load(f)
+config = load_config("config/default.yaml")
 
 
 def test_extract():
@@ -13,12 +13,10 @@ def test_extract():
         accelerator="cpu",
     )
 
-    slides_dir = Path(config["slides_dir"]) / "primary" / "vumc"
+    patch_coordinates_dir = Path(config["patch_coordinates_dir"]) / get_patch_coordinates_dir_name(config)
+    patch_coordinates_file_name = list(patch_coordinates_dir.iterdir())[0].name
 
-    slide_path = list(slides_dir.iterdir())[0]
-    slide_id = slide_path.stem
-
-    datamodule = ExtractionDataModule(slide_id, config)
+    datamodule = ExtractionDataModule(patch_coordinates_file_name, config)
     extractor = ExtractorFramework(config)
 
     trainer.test(extractor, datamodule)

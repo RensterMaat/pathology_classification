@@ -31,6 +31,7 @@ class PatchSlideDataset(Dataset):
 
         return torch.tensor(np.array(img)).float()[0, :, :-1]
 
+
 class CrossSectionDataset(Dataset):
     def __init__(self, patch_coordinates_file_name, config) -> None:
         self.config = config
@@ -49,7 +50,7 @@ class CrossSectionDataset(Dataset):
             size=self.patch_coordinates[ix][2],
         )
 
-        return torch.tensor(np.array(img)).float()[0, :, :-1]
+        return torch.tensor(np.array(img)).float()[:, :, :-1]
         
     def setup_patch_coordinates(self):
         patch_coordinates_dir = Path(self.config["patch_coordinates_dir"]) / get_patch_coordinates_dir_name(self.config)
@@ -59,23 +60,19 @@ class CrossSectionDataset(Dataset):
             self.patch_coordinates = json.load(f)
 
     def setup_slide(self):
-        slide_file_name = self.patch_coordinates_file_name.split("_cross_section").first()
+        slide_file_name = self.patch_coordinates_file_name.split("_cross_section")[0] + '.ndpi'
         slide_file_path = Path(self.config["slides_dir"]) / slide_file_name
         self.slide = OpenSlide(slide_file_path)
 
 
-        
-
-
-
 class ExtractionDataModule(pl.LightningDataModule):
-    def __init__(self, slide_id: str, config: dict) -> None:
+    def __init__(self, patch_coordinates_file_name: str, config: dict) -> None:
         super().__init__()
-        self.slide_id = slide_id
+        self.patch_coordinates_file_name = patch_coordinates_file_name
         self.config = config
 
     def setup(self, stage: str = None) -> None:
-        self.dataset = PatchSlideDataset(self.slide_id, self.config)
+        self.dataset = CrossSectionDataset(self.patch_coordinates_file_name, self.config)
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(
