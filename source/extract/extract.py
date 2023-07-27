@@ -54,7 +54,7 @@ class ExtractorFramework(pl.LightningModule):
 
 
 def main(config):
-    trainer = pl.Trainer(accelerator="cpu", enable_progress_bar=False)
+    trainer = pl.Trainer(accelerator="cpu", enable_progress_bar=True)
 
     extractor = ExtractorFramework(config)
 

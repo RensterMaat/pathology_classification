@@ -40,7 +40,7 @@ n_layers: 2
 learning_rate: 2e-4
 weight_decay: 1e-5
 patience: 10
-num_workers: 24
+num_workers: 0
 seed: 0 
 max_epochs: 100
 patience: 10
@@ -53,5 +53,5 @@ patch_size_during_feature_extraction: 4096
 level_during_feature_extraction: 1
 
 # extraction
-extraction_batch_size: 2
+extraction_batch_size: 64
 extractor_model: resnet50_imagenet

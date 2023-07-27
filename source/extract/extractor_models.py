@@ -41,7 +41,7 @@ class ResNet50ImagenetExtractor(Extractor):
 
         # only use the first three residual blocks of resnet50
         self.resnet50 = nn.Sequential(
-            *list(resnet50)[:-3],
+            *list(resnet50.children())[:-3],
             nn.AdaptiveAvgPool2d(1),
         )
 

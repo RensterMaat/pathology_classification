@@ -23,6 +23,7 @@ class CrossSectionDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.patch_coordinates)
+        # return 10
 
     def __getitem__(self, ix: int) -> torch.Tensor:
         img = self.slide.read_region(
