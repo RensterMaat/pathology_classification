@@ -23,7 +23,7 @@ class RandomExtractor(Extractor):
         self.config = config
 
     def forward(self, x):
-        return np.random.normal(size=(x.shape[0], 32))
+        return torch.tensor(np.random.normal(size=(x.shape[0], 32)))
 
     def transform(self, x):
         return x

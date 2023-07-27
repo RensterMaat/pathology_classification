@@ -54,3 +54,4 @@ level_during_feature_extraction: 1
 
 # extraction
 extraction_batch_size: 2
+extractor: random

@@ -28,7 +28,7 @@ class Preprocessor:
     def __init__(self, config: dict) -> None:
         self.config = config
 
-        self.save_dir_name = get_patch_coordinates_dir_name(config)
+        self.save_dir_path = get_patch_coordinates_dir_name(config)
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
@@ -89,13 +89,10 @@ class Preprocessor:
             slide_name = Path(slide_path).stem
             cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
 
-            save_dir_path = Path(self.config["patch_coordinates_dir"]) / self.save_dir_name
-            if not save_dir_path.exists():
-                save_dir_path.mkdir()
+            if not self.save_dir_path.exists():
+                self.save_dir_path.mkdir()
 
-            cross_section_save_path = (
-                save_dir_path / cross_section_name
-            )
+            cross_section_save_path = self.save_dir_path / cross_section_name
 
             with open(cross_section_save_path, "w") as f:
                 json.dump(tiles[cross_section], f)
@@ -329,10 +326,13 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Extracts tiles from a whole-slide image."
+        description="Extracts patches from a whole-slide image."
     )
     parser.add_argument(
-        "config_path",
+        "--config",
+        type=str,
+        default="config/default.yaml",
+        help="Path to the config file.",
     )
     args = parser.parse_args()
 

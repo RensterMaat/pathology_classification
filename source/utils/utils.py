@@ -4,6 +4,7 @@ import yaml
 from pathlib import Path
 import numpy as np
 from openslide import OpenSlide
+from pathlib import Path
 
 
 def get_slide(slide_id: str, slides_dir: os.PathLike) -> OpenSlide:
@@ -57,5 +58,16 @@ def load_config(config_path: str | os.PathLike) -> dict:
 
     return config
 
+
 def get_patch_coordinates_dir_name(config):
-    return f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
+    return (
+        Path(config["patch_coordinates_dir"])
+        / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
+    )
+
+
+def get_features_dir_name(config):
+    return (
+        Path(config["features_dir"])
+        / f"extraction_level={config['extraction_level']}_extractor={config['extractor']}"
+    )
