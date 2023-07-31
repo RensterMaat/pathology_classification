@@ -6,10 +6,17 @@ from abc import ABC, abstractmethod
 from torchvision.models.vision_transformer import VisionTransformer
 from einops import rearrange
 
+from source.utils.model_components import BaseHIPT, Lambda
+
 
 class Extractor(nn.Module, ABC):
     def __init__(self) -> None:
         super().__init__()
+
+    def __post_init__(self):
+        for param in self.parameters():
+            param.requires_grad = False
+        self.eval()
 
     @abstractmethod
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -59,7 +66,7 @@ class ResNet50ImagenetExtractor(Extractor):
         )(x)
 
 
-class PatchLevelHIPTFeatureExtractor(nn.Module):
+class PatchLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
     def __init__(self, config):
         super().__init__()
 
@@ -84,62 +91,52 @@ class PatchLevelHIPTFeatureExtractor(nn.Module):
     def transform(self, x):
         return x
 
-    def load_and_convert_hipt_checkpoint(self, checkpoint_path):
-        weights = torch.load(checkpoint_path)["teacher"]
-        weights = self.rename_checkpoint_weights_to_match_model(weights)
-        weights = self.interpolate_positional_encoding_weights(weights)
-        weights = self.drop_unnecessary_weights(weights)
-        return weights
 
-    def rename_checkpoint_weights_to_match_model(self, weights):
-        renamed_weights = {}
-        for k, v in weights.items():
-            renamed_key = k.replace("backbone.", "")
-            renamed_key = renamed_key.replace("cls_token", "class_token")
-            renamed_key = renamed_key.replace("pos_embed", "encoder.pos_embedding")
-            renamed_key = renamed_key.replace("patch_embed.proj", "conv_proj")
-            renamed_key = renamed_key.replace(
-                "blocks.", "encoder.layers.encoder_layer_"
-            )
-            renamed_key = renamed_key.replace("norm", "ln_")
-            renamed_key = renamed_key.replace("ln_.", "encoder.ln.")
-            renamed_key = renamed_key.replace("attn.qkv.", "self_attention.in_proj_")
-            renamed_key = renamed_key.replace("attn.proj", "self_attention.out_proj")
-            renamed_key = renamed_key.replace("mlp.fc1", "mlp.0")
-            renamed_key = renamed_key.replace("mlp.fc2", "mlp.3")
+class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
+    def __init__(self, config) -> None:
+        super().__init__()
 
-            renamed_weights[renamed_key] = v
+        self.patch_level_extractor = PatchLevelHIPTFeatureExtractor(config)
 
-        return renamed_weights
-
-    def interpolate_positional_encoding_weights(self, weights):
-        class_positional_embedding = weights["encoder.pos_embedding"][:, 0]
-        patch_positional_embedding = weights["encoder.pos_embedding"][:, 1:]
-
-        patch_positional_embedding = patch_positional_embedding.reshape(1, 14, 14, 384)
-        patch_positional_embedding = patch_positional_embedding.permute((0, 3, 1, 2))
-        upsampled_patch_positional_embedding = nn.functional.interpolate(
-            input=patch_positional_embedding,
-            size=(16, 16),
-            mode="bicubic",
-            align_corners=False,
-        )
-        upsampled_patch_positional_embedding = (
-            upsampled_patch_positional_embedding.permute((0, 2, 3, 1))
-        )
-        upsampled_patch_positional_embedding = (
-            upsampled_patch_positional_embedding.reshape(1, 256, 384)
+        self.region_level_extractor = VisionTransformer(
+            image_size=16,
+            patch_size=1,
+            num_layers=6,
+            num_heads=6,
+            hidden_dim=192,
+            mlp_dim=768,
         )
 
-        weights["encoder.pos_embedding"] = torch.cat(
-            (
-                class_positional_embedding.unsqueeze(0),
-                upsampled_patch_positional_embedding,
-            ),
-            dim=1,
+        phi = nn.Sequential(
+            Lambda(lambda x: x.flatten(2, 3).transpose(1, 2)),
+            nn.Linear(384, 192),
+            nn.GELU(),
+            Lambda(lambda x: x.transpose(1, 2)),
         )
 
-        return weights
+        self.region_level_extractor.conv_proj = phi
+        self.region_level_extractor.heads = nn.Identity()
 
-    def drop_unnecessary_weights(self, weights):
-        return {k: v for k, v in weights.items() if not k.startswith("head")}
+        weights = self.load_and_convert_hipt_checkpoint(
+            config["region_level_hipt_checkpoint_path"]
+        )
+        self.region_level_extractor.load_state_dict(weights)
+
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def forward(self, x):
+        x = x.unfold(2, 256, 256).unfold(3, 256, 256)
+        x = rearrange(x, "b c h w p q -> (b h w) c p q")
+
+        patch_features = self.patch_level_extractor(x)
+        patch_features = patch_features.unsqueeze(0)
+        patch_features = patch_features.unfold(1, 16, 16).transpose(1, 2)
+
+        region_features = self.region_level_extractor(patch_features)
+
+        return region_features
+        # return patch_features
+
+    def transform(self, x):
+        return x

@@ -55,3 +55,7 @@ level_during_feature_extraction: 1
 # extraction
 extraction_batch_size: 64
 extractor_model: resnet50_imagenet
+
+# HIPT checkpoints
+patch_level_hipt_checkpoint_path: /home/rens/repos/pathology_classification/data/hipt_checkpoints/vit256_small_dino.pth
+region_level_hipt_checkpoint_path: /home/rens/repos/pathology_classification/data/hipt_checkpoints/vit4k_xs_dino.pth
