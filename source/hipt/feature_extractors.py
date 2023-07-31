@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from einops import rearrange
 from pathlib import Path
-from vision_transformer import vit_small
-from utils import update_state_dict
+from source.hipt.vision_transformer import vit_small
+from source.hipt.utils import update_state_dict
 
 
 class LocalFeatureExtractor(nn.Module):
