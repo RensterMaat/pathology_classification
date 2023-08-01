@@ -89,7 +89,9 @@ class PatchLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         return self.model(x)
 
     def transform(self, x):
-        return x
+        return torchvision.transforms.Normalize(
+            mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]
+        )(x)
 
 
 class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
@@ -122,9 +124,6 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         )
         self.region_level_extractor.load_state_dict(weights)
 
-        for param in self.parameters():
-            param.requires_grad = False
-
     def forward(self, x):
         x = x.unfold(2, 256, 256).unfold(3, 256, 256)
         x = rearrange(x, "b c h w p q -> (b h w) c p q")
@@ -136,7 +135,8 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         region_features = self.region_level_extractor(patch_features)
 
         return region_features
-        # return patch_features
 
     def transform(self, x):
-        return x
+        return torchvision.transforms.Normalize(
+            mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]
+        )(x)

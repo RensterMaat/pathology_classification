@@ -167,6 +167,7 @@ class Preprocessor:
             tile_information: dictionary containing the location and shape of the tiles for each cross-section.
         """
         shape = [int(dim / scaling_factor) for dim in self.config["patch_dimensions"]]
+        # shape = self.config["patch_dimensions"]
 
         if isinstance(segmentation, torch.Tensor):
             segmentation = segmentation.numpy()

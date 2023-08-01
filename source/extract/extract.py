@@ -1,7 +1,12 @@
 import torch
 import argparse
 import pytorch_lightning as pl
-from source.extract.extractor_models import RandomExtractor, ResNet50ImagenetExtractor
+from source.extract.extractor_models import (
+    RandomExtractor,
+    ResNet50ImagenetExtractor,
+    PatchLevelHIPTFeatureExtractor,
+    RegionLevelHIPTFeatureExtractor,
+)
 from source.extract.data import ExtractionDataModule
 from source.utils.utils import (
     load_config,
@@ -22,6 +27,10 @@ class ExtractorFramework(pl.LightningModule):
             self.extractor = RandomExtractor(config)
         elif config["extractor_model"] == "resnet50_imagenet":
             self.extractor = ResNet50ImagenetExtractor(config)
+        elif config["extractor_model"] == "patch_hipt":
+            self.extractor = PatchLevelHIPTFeatureExtractor(config)
+        elif config["extractor_model"] == "region_hipt":
+            self.extractor = RegionLevelHIPTFeatureExtractor(config)
         else:
             raise ValueError(
                 f"Extractor model {config['extractor_model']} not recognized."
