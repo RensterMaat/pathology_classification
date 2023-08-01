@@ -76,10 +76,8 @@ class BaseHIPT:
         patch_positional_embedding = patch_positional_embedding.permute((0, 3, 1, 2))
         upsampled_patch_positional_embedding = nn.functional.interpolate(
             input=patch_positional_embedding,
-            # size=(16, 16),
             scale_factor=(16.1 / 14, 16.1 / 14),
             mode="bicubic",
-            # align_corners=False,
         )
         upsampled_patch_positional_embedding = (
             upsampled_patch_positional_embedding.permute((0, 2, 3, 1))
