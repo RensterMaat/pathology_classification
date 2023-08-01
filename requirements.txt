@@ -1,7 +1,14 @@
+pyyaml
 numpy
+scipy
 pandas
 matplotlib
 torch
 torchvision
 pytorch-lightning
 pytest
+scikit-misc
+scikit-image
+tqdm
+einops
+
