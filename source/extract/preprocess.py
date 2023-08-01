@@ -14,7 +14,7 @@ from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
 
-from source.utils.utils import load_config, get_patch_coordinates_dir_name
+from source.utils.utils import load_config, get_patch_coordinates_dir_name, list_all_slide_file_paths
 
 
 class Preprocessor:
@@ -321,7 +321,9 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
-    for slide in tqdm(list(Path(config["slides_dir"]).glob("*.ndpi"))):
+    # for slide in tqdm(list(Path(config["slides_dir"]).glob("*.ndpi"))):
+    #     preprocessor(slide)
+    for slide in tqdm(list_all_slide_file_paths(config['slides_dir'])):
         preprocessor(slide)
 
 
