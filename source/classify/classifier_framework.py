@@ -14,7 +14,40 @@ from pathlib import Path
 
 
 class ClassifierFramework(pl.LightningModule):
+    """
+    Classifier framework for training and testing.
+
+    Implements the pytorch-lightning LightningModule interface.
+
+    Methods:
+        forward: Forward pass through the classifier.
+        training_step: Training step for pytorch-lightning.
+        validation_step: Validation step for pytorch-lightning.
+        test_step: Test step for pytorch-lightning.
+        on_test_epoch_end: Called at the end of the test epoch.
+        configure_optimizers: Configures the optimizer.
+
+    Attributes:
+        config: Dictionary containing the configuration.
+        classifier: The classifier, one of:
+            - NaivePoolingClassifier
+            - AttentionClassifier
+            - TransformerClassifier
+        criterion: The loss function.
+        train_auc: The training AUROC metric.
+        val_auc: The validation AUROC metric.
+        test_auc: The test AUROC metric.
+        test_outputs: List containing the test outputs.
+        heatmap_generator: The heatmap generator.
+    """
+
     def __init__(self, config: dict) -> None:
+        """
+        Initializes the ClassifierFramework.
+
+        Args:
+            config: Dictionary containing the configuration. See also load_config in source/utils/utils.py.
+        """
         super().__init__()
 
         self.config = config
@@ -42,9 +75,29 @@ class ClassifierFramework(pl.LightningModule):
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False
     ) -> torch.Tensor:
+        """
+        Forward pass through the classifier.
+
+        Args:
+            x: The input tensor of shape (batch_size, num_patches, num_features).
+            return_heatmap_vector: Whether to return the heatmap vector.
+
+        Returns:
+            The output tensor of shape (batch_size, num_classes).
+        """
         return self.classifier(x, return_heatmap_vector)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        """
+        Training step for pytorch-lightning.
+
+        Args:
+            batch: The batch of data.
+            batch_idx: The batch index.
+
+        Returns:
+            The loss.
+        """
         x, y, _ = batch
         y_hat = self.classifier(x)
 
@@ -61,6 +114,16 @@ class ClassifierFramework(pl.LightningModule):
         return loss
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        """
+        Validation step for pytorch-lightning.
+
+        Args:
+            batch: The batch of data.
+            batch_idx: The batch index.
+
+        Returns:
+            The loss.
+        """
         x, y, _ = batch
         y_hat = self.classifier(x)
 
@@ -76,13 +139,23 @@ class ClassifierFramework(pl.LightningModule):
 
         return loss
 
-    def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+    def test_step(self, batch: torch.Tensor, batch_idx: int) -> None:
+        """
+        Testing step for pytorch-lightning.
+
+        Optionally generates heatmaps. Set this option in the config file.
+
+        Args:
+            batch: The batch of data.
+            batch_idx: The batch index.
+
+        """
         x, y, features_path = batch
         slide_id = Path(features_path[0]).stem
 
         if self.config["generate_heatmaps"]:
             y_hat, heatmap_vector = self.classifier.forward(
-                x, return_heatmap_vector=self.config["generate_heatmaps"]
+                x, return_heatmap_vector=True
             )
             heatmap = self.heatmap_generator(heatmap_vector, slide_id)
             heatmap.axes[0].set_title(
@@ -96,9 +169,7 @@ class ClassifierFramework(pl.LightningModule):
             heatmap.savefig(save_path)
             plt.close("all")
         else:
-            y_hat = self.classifier.forward(
-                x, return_heatmap_vector=self.config["generate_heatmaps"]
-            )
+            y_hat = self.classifier.forward(x, return_heatmap_vector=False)
 
         self.test_auc.update(y_hat.squeeze(), y.squeeze().int())
 
@@ -112,6 +183,9 @@ class ClassifierFramework(pl.LightningModule):
         )
 
     def on_test_epoch_end(self):
+        """
+        Saves the test outputs per slide of the current fold to a csv file.
+        """
         results = pd.DataFrame(
             self.test_outputs, columns=["slide_id", self.config["target"], "prediction"]
         )
@@ -122,6 +196,12 @@ class ClassifierFramework(pl.LightningModule):
         )
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
+        """
+        Configures the optimizer.
+
+        Returns:
+            The optimizer.
+        """
         optimizer = torch.optim.AdamW(
             self.parameters(),
             lr=float(self.config["learning_rate"]),

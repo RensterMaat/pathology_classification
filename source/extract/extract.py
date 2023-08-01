@@ -1,6 +1,9 @@
+import os
 import torch
 import argparse
 import pytorch_lightning as pl
+from tqdm import tqdm
+
 from source.extract.extractor_models import (
     RandomExtractor,
     ResNet50ImagenetExtractor,
@@ -13,12 +16,25 @@ from source.utils.utils import (
     get_features_dir_name,
     get_patch_coordinates_dir_name,
 )
-from pathlib import Path
-from tqdm import tqdm
 
 
 class ExtractorFramework(pl.LightningModule):
+    """
+    Framework for extracting features from patches.
+
+    This class implements the pytorch lightning LightningModule interface
+    and contains boilerplate code for extracting patch level features from
+    histopathology slides given an extractor model.
+    """
+
     def __init__(self, config: dict) -> None:
+        """
+        Initialize the ExtractorFramework.
+
+        Args:
+            config (dict): Configuration dictionary. See load_config() in
+                source/utils/utils.py for more information.
+        """
         super().__init__()
 
         self.config = config
@@ -38,20 +54,49 @@ class ExtractorFramework(pl.LightningModule):
 
         self.all_features = []
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through the extractor model.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, channels, height, width).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, num_features).
+
+        """
         x_transformed = self.extractor.transform(x)
         batch_features = self.extractor.forward(x_transformed)
 
         return batch_features
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        """
+        Test step for pytorch lightning.
+
+        Args:
+            batch (torch.Tensor): Input tensor of shape (batch_size, channels, height, width).
+            batch_idx (int): Batch index.
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, num_features).
+        """
         batch_features = self.forward(batch)
 
         self.all_features.append(batch_features)
 
         return batch_features
 
-    def save_features(self, features_file_name):
+    def save_features(self, features_file_name: os.PathLike) -> None:
+        """
+        Save the extracted features to disk.
+
+        Args:
+            features_file_name (str): Name of the file to save the features to.
+
+        Returns:
+            None
+        """
         save_dir = get_features_dir_name(self.config)
 
         if not save_dir.exists():
@@ -63,6 +108,16 @@ class ExtractorFramework(pl.LightningModule):
 
 
 def main(config):
+    """
+    Extract features from patches.
+
+    Args:
+        config (dict): Configuration dictionary. See load_config() in
+            source/utils/utils.py for more information.
+
+    Returns:
+        None
+    """
     trainer = pl.Trainer(accelerator="cpu", enable_progress_bar=True)
 
     extractor = ExtractorFramework(config)

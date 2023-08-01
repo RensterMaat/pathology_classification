@@ -8,16 +8,46 @@ from pathlib import Path
 
 
 def get_slide(slide_id: str, slides_dir: os.PathLike) -> OpenSlide:
+    """
+    Get the slide corresponding to the slide ID.
+
+    Args:
+        slide_id (str): Slide ID.
+        slides_dir (os.PathLike): Path to the directory containing the slides.
+
+    Returns:
+        OpenSlide: Slide corresponding to the slide ID.
+    """
     slide_file_path = find_slide_file_path(slide_id, slides_dir)
     return OpenSlide(slide_file_path)
 
 
 def get_coordinates(slide_id: str, patch_coordinates_dir: os.PathLike) -> np.array:
+    """
+    Get the coordinates of the patches of the slide corresponding to the slide ID.
+
+    Args:
+        slide_id (str): Slide ID.
+        patch_coordinates_dir (os.PathLike): Path to the directory containing the patch
+
+    Returns:
+        np.array: Coordinates of the patches of the slide corresponding to the slide ID.
+    """
     coordinates_file_path = find_coordinates_file_path(slide_id, patch_coordinates_dir)
     return np.array(h5py.File(coordinates_file_path, "r")["coords"])
 
 
 def find_slide_file_path(slide_id: str, slides_dir: os.PathLike) -> str:
+    """
+    Find the path to the slide corresponding to the slide ID.
+
+    Args:
+        slide_id (str): Slide ID.
+        slides_dir (os.PathLike): Path to the directory containing the slides.
+
+    Returns:
+        str: Path to the slide corresponding to the slide ID.
+    """
     for dir, _, files in os.walk(slides_dir):
         for file in files:
             if ".".join(file.split(".")[:-1]) == slide_id:
@@ -27,16 +57,50 @@ def find_slide_file_path(slide_id: str, slides_dir: os.PathLike) -> str:
 def find_coordinates_file_path(
     slide_id: str, patch_coordinates_dir: os.PathLike
 ) -> str:
+    """
+    Find the path to the coordinates of the patches of the slide corresponding to the slide ID.
+
+    Args:
+        slide_id (str): Slide ID.
+        patch_coordinates_dir (os.PathLike): Path to the directory containing the patch coordinates.
+
+    Returns:
+        str: Path to the coordinates of the patches of the slide corresponding to the slide ID.
+    """
     root = Path(patch_coordinates_dir)
     return str(root / slide_id / (slide_id + ".h5"))
 
 
-def scale_coordinates(coordinates: np.array, slide: str, level: int) -> np.array:
+def scale_coordinates(coordinates: np.array, slide: OpenSlide, level: int) -> np.array:
+    """
+    Scale the coordinates of the patches from the extraction level to the level of the slide.
+
+    Args:
+        coordinates (np.array): Coordinates of the patches at the extraction level.
+        slide (OpenSlide): Slide of which the patches are extracted.
+        level (int): Level of the slide.
+
+    Returns:
+        np.array: Coordinates of the patches at the level of the slide.
+    """
     scaling_factor = slide.level_dimensions[0][0] / slide.level_dimensions[level][0]
     return coordinates / scaling_factor
 
 
 def load_config(config_path: str | os.PathLike) -> dict:
+    """
+    Load the configuration file.
+
+    Defaults to the default configuration file for keys not present in the configuration file.
+    If directories for features, slides, patch coordinates, segmentations or cross-validation splits are not specified,
+    they are set to the default directories (e.g. <dataset_dir>/features).
+
+    Args:
+        config_path (str | os.PathLike): Path to the configuration file.
+
+    Returns:
+        dict: Configuration file.
+    """
     default_config_path = Path(config_path).parent / "default.yaml"
 
     with open(default_config_path) as f:
@@ -59,7 +123,16 @@ def load_config(config_path: str | os.PathLike) -> dict:
     return config
 
 
-def get_patch_coordinates_dir_name(config):
+def get_patch_coordinates_dir_name(config: dict) -> os.PathLike:
+    """
+    Get the name of the directory containing the patch coordinates.
+
+    Args:
+        config (dict): Configuration file.
+
+    Returns:
+        os.PathLike: Name of the directory containing the patch coordinates.
+    """
     return (
         Path(config["patch_coordinates_dir"])
         / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
@@ -67,6 +140,15 @@ def get_patch_coordinates_dir_name(config):
 
 
 def get_features_dir_name(config):
+    """
+    Get the name of the directory containing the features.
+
+    Args:
+        config (dict): Configuration file.
+
+    Returns:
+        os.PathLike: Name of the directory containing the features.
+    """
     return (
         Path(config["features_dir"])
         / f"extraction_level={config['extraction_level']}_extractor={config['extractor_model']}"

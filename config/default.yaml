@@ -13,11 +13,11 @@ extraction_level: 1
 median_filter_size: 10
 hole_area_threshold: 1000
 min_tissue_fraction: 0.01
-patch_dimensions: [4096, 4096]
+patch_dimensions: [256, 256]
 
 # extraction
 extraction_batch_size: 1
-extractor_model: region_hipt
+extractor_model: resnet50_imagenet
 
 # HIPT checkpoints
 patch_level_hipt_checkpoint_path: /home/rens/repos/HIPT/HIPT_4K/Checkpoints/vit256_small_dino.pth
