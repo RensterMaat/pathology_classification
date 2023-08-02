@@ -1,0 +1,19 @@
+# data paths
+dataset_dir: /hpc/dla_patho/premium/rens/camelyon/CAMELYON16/output
+cross_val_splits_dir: 
+features_dir: 
+slides_dir: /hpc/dla_patho/premium/rens/camelyon/CAMELYON16/images
+segmentations_dir:
+patch_coordinates_dir: 
+output_dir: 
+
+# preprocessing
+patch_dimensions: [256, 256]
+
+# extraction
+extraction_batch_size: 1
+extractor_model: region_hipt
+
+# HIPT checkpoints
+patch_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit256_small_dino.pth
+region_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth

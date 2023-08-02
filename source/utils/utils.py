@@ -53,7 +53,7 @@ def list_all_slide_file_paths(slides_dir: os.PathLike) -> list:
     for root, _, files in os.walk(slides_dir):
         slide_file_paths = [
             Path(root) / file for file in files
-            if file.split('.')[-1] in ['ndpi','svs']
+            if file.split('.')[-1] in ['ndpi','svs','tif']
         ]
         all_file_paths.extend(slide_file_paths)
 
