@@ -12,7 +12,7 @@ preprocessing_level: 8
 extraction_level: 1
 median_filter_size: 10
 hole_area_threshold: 1000
-min_tissue_fraction: 0.01
+min_tissue_fraction: 0.1
 patch_dimensions: [4096, 4096]
 
 # extraction

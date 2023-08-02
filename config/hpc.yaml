@@ -8,11 +8,6 @@ patch_coordinates_dir:
 output_dir: 
 
 # preprocessing
-preprocessing_level: 8
-extraction_level: 1
-median_filter_size: 10
-hole_area_threshold: 1000
-min_tissue_fraction: 0.01
 patch_dimensions: [4096, 4096]
 
 # extraction
@@ -22,41 +17,3 @@ extractor_model: region_hipt
 # HIPT checkpoints
 patch_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit256_small_dino.pth
 region_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
-
-# task
-target: label
-n_classes: 2
-
-# classifier
-classifier: AttentionClassifier
-n_features: 192
-final_activation: softmax
-dropout: False
-
-# naive pooling classifier specific parameters
-pooling_function: max
-
-# attention classifier specific parameters
-attention_dim: 128
-
-# transformer classifier specific parameters
-n_heads: 3
-activation_function: 'relu'
-n_layers: 2
-
-# training parameters
-learning_rate: 2e-4
-weight_decay: 1e-5
-patience: 10
-num_workers: 0
-seed: 0 
-max_epochs: 100
-patience: 10
-
-# heatmaps
-generate_heatmaps: True
-level_for_visualizing_heatmap: 7
-dpi: 80
-patch_size_during_feature_extraction: 4096
-level_during_feature_extraction: 1
-

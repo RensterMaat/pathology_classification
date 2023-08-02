@@ -52,10 +52,12 @@ class Preprocessor:
 
         slide = OpenSlide(str(slide_path))
 
-        preprocessing_level = max(
+        preprocessing_level = min(
             self.config['preprocessing_level'],
             len(slide.level_dimensions) - 1
         )
+
+        print(preprocessing_level, slide.level_dimensions)
 
         if segmentation_path is None:  # default to Otsu thresholding
             img = np.array(
