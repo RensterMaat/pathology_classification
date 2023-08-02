@@ -1,8 +1,8 @@
 # data paths
-dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/premium
+dataset_dir: /home/rens/repos/pathology_classification/data/example_dataset
 cross_val_splits_dir: 
 features_dir: 
-slides_dir: /hpc/dla_patho/premium/pathology/slides
+slides_dir:
 segmentations_dir:
 patch_coordinates_dir: 
 output_dir: 
@@ -13,15 +13,15 @@ extraction_level: 1
 median_filter_size: 10
 hole_area_threshold: 1000
 min_tissue_fraction: 0.01
-patch_dimensions: [256, 256]
+patch_dimensions: [4096, 4096]
 
 # extraction
 extraction_batch_size: 1
-extractor_model: resnet50_imagenet
+extractor_model: region_hipt
 
 # HIPT checkpoints
-patch_level_hipt_checkpoint_path: /home/rens/repos/HIPT/HIPT_4K/Checkpoints/vit256_small_dino.pth
-region_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
+patch_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit256_small_dino.pth
+region_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
 
 # task
 target: label
