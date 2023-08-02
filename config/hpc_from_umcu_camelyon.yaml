@@ -22,3 +22,5 @@ extractor_model: region_hipt
 # HIPT checkpoints
 patch_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit256_small_dino.pth
 region_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
+
+###
