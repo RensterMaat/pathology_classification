@@ -52,12 +52,17 @@ class Preprocessor:
 
         slide = OpenSlide(str(slide_path))
 
+        preprocessing_level = max(
+            self.config['preprocessing_level'],
+            len(slide.level_dimensions) - 1
+        )
+
         if segmentation_path is None:  # default to Otsu thresholding
             img = np.array(
                 slide.read_region(
                     (0, 0),
-                    self.config["preprocessing_level"],
-                    slide.level_dimensions[self.config["preprocessing_level"]],
+                    preprocessing_level,
+                    slide.level_dimensions[preprocessing_level],
                 )
             )[:, :, :3]
             segmentation = self.create_segmentation(img)
@@ -67,12 +72,12 @@ class Preprocessor:
             )
 
         scaling_factor = (
-            slide.level_downsamples[self.config["preprocessing_level"]]
+            slide.level_downsamples[preprocessing_level]
             / slide.level_downsamples[self.config["extraction_level"]]
         )
         tiles = self.tessellate(segmentation, scaling_factor)
         scaled_tiles = self.scale_tiles(
-            tiles, slide.level_downsamples[self.config["preprocessing_level"]]
+            tiles, slide.level_downsamples[preprocessing_level]
         )
 
         self.save_tiles(scaled_tiles, slide_path)
