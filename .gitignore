@@ -4,6 +4,9 @@ lightning_logs
 data
 wandb
 output
+scripts
+checkpoints
+default.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

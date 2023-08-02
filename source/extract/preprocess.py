@@ -90,7 +90,7 @@ class Preprocessor:
             cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
 
             if not self.save_dir_path.exists():
-                self.save_dir_path.mkdir()
+                self.save_dir_path.mkdir(parents=True)
 
             cross_section_save_path = self.save_dir_path / cross_section_name
 
@@ -324,7 +324,7 @@ def main(config):
     # for slide in tqdm(list(Path(config["slides_dir"]).glob("*.ndpi"))):
     #     preprocessor(slide)
     for slide in tqdm(list_all_slide_file_paths(config['slides_dir'])):
-        preprocessor(slide)
+        preprocessor(str(slide))
 
 
 if __name__ == "__main__":

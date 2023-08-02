@@ -1,5 +1,5 @@
 import os
-import h5py
+# import h5py
 import yaml
 from pathlib import Path
 import numpy as np
@@ -22,19 +22,19 @@ def get_slide(slide_id: str, slides_dir: os.PathLike) -> OpenSlide:
     return OpenSlide(slide_file_path)
 
 
-def get_coordinates(slide_id: str, patch_coordinates_dir: os.PathLike) -> np.array:
-    """
-    Get the coordinates of the patches of the slide corresponding to the slide ID.
+# def get_coordinates(slide_id: str, patch_coordinates_dir: os.PathLike) -> np.array:
+#     """
+#     Get the coordinates of the patches of the slide corresponding to the slide ID.
 
-    Args:
-        slide_id (str): Slide ID.
-        patch_coordinates_dir (os.PathLike): Path to the directory containing the patch
+#     Args:
+#         slide_id (str): Slide ID.
+#         patch_coordinates_dir (os.PathLike): Path to the directory containing the patch
 
-    Returns:
-        np.array: Coordinates of the patches of the slide corresponding to the slide ID.
-    """
-    coordinates_file_path = find_coordinates_file_path(slide_id, patch_coordinates_dir)
-    return np.array(h5py.File(coordinates_file_path, "r")["coords"])
+#     Returns:
+#         np.array: Coordinates of the patches of the slide corresponding to the slide ID.
+#     """
+#     coordinates_file_path = find_coordinates_file_path(slide_id, patch_coordinates_dir)
+#     return np.array(h5py.File(coordinates_file_path, "r")["coords"])
 
 
 def list_all_slide_file_paths(slides_dir: os.PathLike) -> list:
@@ -50,12 +50,12 @@ def list_all_slide_file_paths(slides_dir: os.PathLike) -> list:
         list: list of the paths all histopathology slide files in slides_dir
     """
     all_file_paths = []
-    for dir, _, files in os.walk(slides_dir):
+    for root, _, files in os.walk(slides_dir):
         slide_file_paths = [
-            Path(dir) / file for file in files
-            if file.split('.')[-1] in ['.ndpi','.svs']
+            Path(root) / file for file in files
+            if file.split('.')[-1] in ['ndpi','svs']
         ]
-        all_file_paths.append(slide_file_paths)
+        all_file_paths.extend(slide_file_paths)
 
     return all_file_paths
     

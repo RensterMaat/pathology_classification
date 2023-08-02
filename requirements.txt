@@ -11,4 +11,4 @@ scikit-misc
 scikit-image
 tqdm
 einops
-
+openslide-python
