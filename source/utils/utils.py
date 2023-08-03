@@ -1,4 +1,5 @@
 import os
+
 # import h5py
 import yaml
 from pathlib import Path
@@ -37,11 +38,36 @@ def get_slide(slide_id: str, slides_dir: os.PathLike) -> OpenSlide:
 #     return np.array(h5py.File(coordinates_file_path, "r")["coords"])
 
 
+def get_dict_of_slide_ids_vs_paths(slides_dir: os.PathLike) -> dict:
+    """
+    Get a dictionary of slide IDs versus paths to the slides.
+
+    Currently only searches for .ndpi, .svs and .tif files.
+
+    Args:
+        slides_dir (os.PathLike): Path to the directory containing the slides.
+
+    Returns:
+        dict: Dictionary of slide IDs versus paths to the slides.
+    """
+    slide_ids_vs_paths = {}
+    for root, _, files in os.walk(slides_dir):
+        slide_ids_vs_paths.update(
+            {
+                ".".join(file.split(".")[:-1]): str(Path(root) / file)
+                for file in files
+                if file.split(".")[-1] in ["ndpi", "svs", "tif"]
+            }
+        )
+
+    return slide_ids_vs_paths
+
+
 def list_all_slide_file_paths(slides_dir: os.PathLike) -> list:
     """
     Recursively lists the paths of all histopathology slide files in a given directory.
 
-    Currently only searches for .ndpi and .svs files.
+    Currently only searches for .ndpi, .svs and .tif files.
 
     Args:
         slides_dir (os.PathLike): directory to be searched for histopathology slide files
@@ -52,13 +78,14 @@ def list_all_slide_file_paths(slides_dir: os.PathLike) -> list:
     all_file_paths = []
     for root, _, files in os.walk(slides_dir):
         slide_file_paths = [
-            Path(root) / file for file in files
-            if file.split('.')[-1] in ['ndpi','svs','tif']
+            Path(root) / file
+            for file in files
+            if file.split(".")[-1] in ["ndpi", "svs", "tif"]
         ]
         all_file_paths.extend(slide_file_paths)
 
     return all_file_paths
-    
+
 
 def find_slide_file_path(slide_id: str, slides_dir: os.PathLike) -> str:
     """

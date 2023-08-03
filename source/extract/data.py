@@ -9,6 +9,7 @@ from openslide import OpenSlide
 
 from source.utils.utils import (
     get_patch_coordinates_dir_name,
+    get_dict_of_slide_ids_vs_paths,
 )
 
 
@@ -92,10 +93,10 @@ class CrossSectionDataset(Dataset):
         Returns:
             None
         """
-        slide_file_name = (
-            self.patch_coordinates_file_name.split("_cross_section")[0] + ".ndpi"
-        )
-        slide_file_path = Path(self.config["slides_dir"]) / slide_file_name
+        slide_id = self.patch_coordinates_file_name.split("_cross_section")[0]
+        slide_file_path = get_dict_of_slide_ids_vs_paths(self.config["slides_dir"])[
+            slide_id
+        ]
         self.slide = OpenSlide(slide_file_path)
 
 
