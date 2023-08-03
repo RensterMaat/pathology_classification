@@ -51,8 +51,8 @@ class CrossSectionDataset(Dataset):
         with open(patch_coordinates_file_path) as f:
             self.patch_coordinates = json.load(f)
 
-        self.tile_images_folder_path = (
-            get_tiles_dir_name(self.config) / patch_coordinates_file_name
+        self.tile_images_folder_path = get_tiles_dir_name(self.config) / ".".join(
+            patch_coordinates_file_name.split(".")[:-1]
         )
 
     def __len__(self) -> int:
@@ -77,7 +77,7 @@ class CrossSectionDataset(Dataset):
         x, y = self.patch_coordinates[ix][1]
         patch_image_file_name = self.tile_images_folder_path.name + f"_{x}_{y}.png"
 
-        img = read_image(self.tile_images_folder_path / patch_image_file_name)
+        img = read_image(str(self.tile_images_folder_path / patch_image_file_name))
 
         out = (img[:3] / 255.0).float()
 
