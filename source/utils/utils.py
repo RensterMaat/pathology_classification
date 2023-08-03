@@ -166,6 +166,7 @@ def load_config(config_path: str | os.PathLike) -> dict:
         "segmentations",
         "cross_val_splits",
         "output",
+        "tiles",
     ]:
         if not config[f"{directory}_dir"]:
             config[f"{directory}_dir"] = Path(config["dataset_dir"]) / directory
@@ -185,6 +186,22 @@ def get_patch_coordinates_dir_name(config: dict) -> os.PathLike:
     """
     return (
         Path(config["patch_coordinates_dir"])
+        / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
+    )
+
+
+def get_tiles_dir_name(config: dict) -> os.PathLike:
+    """
+    Get the name of the directory containing the tiles.
+
+    Args:
+        config (dict): Configuration file.
+
+    Returns:
+        os.PathLike: Name of the directory containing the tiles.
+    """
+    return (
+        Path(config["tiles_dir"])
         / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
     )
 
