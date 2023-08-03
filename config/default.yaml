@@ -50,7 +50,7 @@ n_layers: 2
 learning_rate: 2e-4
 weight_decay: 1e-5
 patience: 10
-num_workers: 0
+num_workers: 4
 seed: 0 
 max_epochs: 100
 patience: 10

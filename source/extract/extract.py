@@ -118,7 +118,7 @@ def main(config):
     Returns:
         None
     """
-    trainer = pl.Trainer(accelerator="cpu", enable_progress_bar=True)
+    trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=True)
 
     extractor = ExtractorFramework(config)
 
