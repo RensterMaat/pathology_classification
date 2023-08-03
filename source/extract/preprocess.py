@@ -4,20 +4,22 @@ import torch
 import json
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from torch.nn.functional import conv2d
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_holes
 from matplotlib.colors import rgb_to_hsv
 from scipy.ndimage import median_filter
 from openslide import OpenSlide
-from math import ceil, floor
 from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 from source.utils.utils import (
     load_config,
     get_patch_coordinates_dir_name,
+    get_tiles_dir_name,
     list_all_slide_file_paths,
 )
 
@@ -33,14 +35,17 @@ class Preprocessor:
     def __init__(self, config: dict) -> None:
         self.config = config
 
-        self.save_dir_path = get_patch_coordinates_dir_name(config)
+        self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
+        self.tiles_save_dir_path = get_tiles_dir_name(config)
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
     ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
         """
-        Extracts tiles from a whole-slide image. Defaults to using the Otsu thresholding method
-        to create a segmentation if no segmentation is provided.
+        Extracts tiles from a whole-slide image.
+
+        Defaults to using the Otsu thresholding method to create a segmentation if no
+        segmentation is provided.
 
         Args:
             slide_path: path to the whole-slide image.
@@ -53,8 +58,7 @@ class Preprocessor:
         slide = OpenSlide(str(slide_path))
 
         preprocessing_level = min(
-            self.config['preprocessing_level'],
-            len(slide.level_dimensions) - 1
+            self.config["preprocessing_level"], len(slide.level_dimensions) - 1
         )
 
         if segmentation_path is None:  # default to Otsu thresholding
@@ -75,18 +79,19 @@ class Preprocessor:
             slide.level_downsamples[preprocessing_level]
             / slide.level_downsamples[self.config["extraction_level"]]
         )
-        tiles = self.tessellate(segmentation, scaling_factor)
-        scaled_tiles = self.scale_tiles(
-            tiles, slide.level_downsamples[preprocessing_level]
+        tile_coordinates = self.tessellate(segmentation, scaling_factor)
+        scaled_tile_coordinates = self.scale_tiles(
+            tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
 
-        self.save_tiles(scaled_tiles, slide_path)
+        self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
+        self.save_tile_images(scaled_tile_coordinates, slide_path)
 
-        return scaled_tiles
+        return scaled_tile_coordinates
 
-    def save_tiles(
+    def save_tile_coordinates(
         self,
-        tiles: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
+        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
         slide_path: str | os.PathLike,
     ) -> None:
         """
@@ -97,17 +102,51 @@ class Preprocessor:
             slide_path: path to the whole-slide image.
 
         """
-        for cross_section in tiles:
+        for cross_section in tile_coordinates:
             slide_name = Path(slide_path).stem
             cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
 
-            if not self.save_dir_path.exists():
-                self.save_dir_path.mkdir(parents=True)
+            if not self.patch_coordinates_save_dir_path.exists():
+                self.patch_coordinates_save_dir_path.mkdir(parents=True)
 
-            cross_section_save_path = self.save_dir_path / cross_section_name
+            cross_section_save_path = (
+                self.patch_coordinates_save_dir_path / cross_section_name
+            )
 
             with open(cross_section_save_path, "w") as f:
-                json.dump(tiles[cross_section], f)
+                json.dump(tile_coordinates[cross_section], f)
+
+    def save_tile_images(
+        self,
+        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
+        slide_path: os.PathLike,
+    ) -> None:
+        """
+        Saves the tiles to png images.
+
+        Args:
+            tiles: dictionary containing the tiles for each cross-section.
+            slide_path: path to the whole-slide image.
+        """
+        slide_name = Path(slide_path).stem
+        for cross_section in tile_coordinates:
+            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+            cross_section_dir_path = self.tiles_save_dir_path / cross_section_name
+            if not cross_section_dir_path.exists():
+                cross_section_dir_path.mkdir(parents=True)
+
+            slide = OpenSlide(str(slide_path))
+            for pos, loc, shape in tile_coordinates[cross_section]:
+                tile = np.array(
+                    slide.read_region(
+                        loc,
+                        self.config["extraction_level"],
+                        shape,
+                    )
+                )[:, :, :3]
+                tile_name = f"{cross_section_name}_{loc[0]}_{loc[1]}.png"
+                tile_save_path = cross_section_dir_path / tile_name
+                plt.imsave(tile_save_path, tile)
 
     def scale_tiles(
         self,
@@ -375,8 +414,12 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
-    for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])[1937:]):
-        preprocessor(slide)
+    # for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])):
+    #     preprocessor(slide)
+    Parallel(n_jobs=config["preprocessing_num_workers"])(
+        delayed(preprocessor)(slide)
+        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"]))
+    )
 
 
 if __name__ == "__main__":
