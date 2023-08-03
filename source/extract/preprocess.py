@@ -376,7 +376,6 @@ def main(config):
     preprocessor = Preprocessor(config)
 
     for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])[1937:]):
-        print(slide)
         preprocessor(slide)
 
 
