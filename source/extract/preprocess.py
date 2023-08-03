@@ -57,8 +57,6 @@ class Preprocessor:
             len(slide.level_dimensions) - 1
         )
 
-        print(preprocessing_level, slide.level_dimensions)
-
         if segmentation_path is None:  # default to Otsu thresholding
             img = np.array(
                 slide.read_region(
@@ -377,7 +375,8 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
-    for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])):
+    for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])[1937:]):
+        print(slide)
         preprocessor(slide)
 
 
