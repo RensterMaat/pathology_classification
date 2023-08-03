@@ -100,7 +100,7 @@ class ExtractorFramework(pl.LightningModule):
         save_dir = get_features_dir_name(self.config)
 
         if not save_dir.exists():
-            save_dir.mkdir()
+            save_dir.mkdir(parents=True)
 
         torch.save(
             torch.cat(self.all_features), save_dir / (features_file_name + ".pt")
