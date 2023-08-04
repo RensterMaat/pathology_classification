@@ -418,7 +418,7 @@ def main(config):
     #     preprocessor(slide)
     Parallel(n_jobs=config["preprocessing_num_workers"])(
         delayed(preprocessor)(slide)
-        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"]))
+        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])[408+414:])
     )
 
 

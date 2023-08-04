@@ -8,7 +8,7 @@ patch_coordinates_dir:
 output_dir: 
 
 # preprocessing
-wpatch_dimensions: [4096, 4096]
+patch_dimensions: [4096, 4096]
 
 # extraction
 extraction_batch_size: 1
