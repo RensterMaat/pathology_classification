@@ -85,7 +85,6 @@ class Preprocessor:
         )
 
         self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
-        self.save_tile_images(scaled_tile_coordinates, slide_path)
 
         return scaled_tile_coordinates
 
@@ -115,38 +114,6 @@ class Preprocessor:
 
             with open(cross_section_save_path, "w") as f:
                 json.dump(tile_coordinates[cross_section], f)
-
-    def save_tile_images(
-        self,
-        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
-        slide_path: os.PathLike,
-    ) -> None:
-        """
-        Saves the tiles to png images.
-
-        Args:
-            tiles: dictionary containing the tiles for each cross-section.
-            slide_path: path to the whole-slide image.
-        """
-        slide_name = Path(slide_path).stem
-        for cross_section in tile_coordinates:
-            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
-            cross_section_dir_path = self.tiles_save_dir_path / cross_section_name
-            if not cross_section_dir_path.exists():
-                cross_section_dir_path.mkdir(parents=True)
-
-            slide = OpenSlide(str(slide_path))
-            for pos, loc, shape in tile_coordinates[cross_section]:
-                tile = np.array(
-                    slide.read_region(
-                        loc,
-                        self.config["extraction_level"],
-                        shape,
-                    )
-                )[:, :, :3]
-                tile_name = f"{cross_section_name}_{loc[0]}_{loc[1]}.png"
-                tile_save_path = cross_section_dir_path / tile_name
-                plt.imsave(tile_save_path, tile)
 
     def scale_tiles(
         self,
@@ -418,7 +385,7 @@ def main(config):
     #     preprocessor(slide)
     Parallel(n_jobs=config["preprocessing_num_workers"])(
         delayed(preprocessor)(slide)
-        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])[408+414:])
+        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"]))
     )
 
 
