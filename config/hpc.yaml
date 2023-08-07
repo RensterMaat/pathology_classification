@@ -1,6 +1,5 @@
 # data paths
 dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/premium
-cross_val_splits_dir: 
 features_dir: 
 slides_dir: /hpc/dla_patho/premium/pathology/slides
 segmentations_dir:

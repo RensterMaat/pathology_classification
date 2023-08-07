@@ -38,6 +38,10 @@ def get_slide(slide_id: str, slides_dir: os.PathLike) -> OpenSlide:
 #     return np.array(h5py.File(coordinates_file_path, "r")["coords"])
 
 
+def get_coordinates(*args):
+    raise NotImplementedError
+
+
 def get_dict_of_slide_ids_vs_paths(slides_dir: os.PathLike) -> dict:
     """
     Get a dictionary of slide IDs versus paths to the slides.

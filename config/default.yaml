@@ -56,7 +56,7 @@ max_epochs: 100
 patience: 10
 
 # heatmaps
-generate_heatmaps: True
+generate_heatmaps: False
 level_for_visualizing_heatmap: 7
 dpi: 80
 patch_size_during_feature_extraction: 4096

@@ -4,6 +4,7 @@ import pandas as pd
 import pytorch_lightning as pl
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
+from source.utils.utils import get_features_dir_name
 
 
 class PreextractedFeatureDataset(Dataset):
@@ -20,9 +21,8 @@ class PreextractedFeatureDataset(Dataset):
     def __getitem__(self, ix: int) -> tuple[torch.Tensor, torch.Tensor, str]:
         case = self.data.iloc[ix]
 
-        features_path = str(
-            Path(self.config["features_dir"]) / (case["slide_id"] + ".pt")
-        )
+        features_dir = get_features_dir_name(self.config)
+        features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
 
         x = torch.load(features_path).float()
         y = torch.zeros(self.config["n_classes"]).float()
