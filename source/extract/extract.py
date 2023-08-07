@@ -52,6 +52,7 @@ class ExtractorFramework(pl.LightningModule):
                 f"Extractor model {config['extractor_model']} not recognized."
             )
 
+        self.save_dir = get_features_dir_name(self.config)
         self.all_features = []
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -97,13 +98,8 @@ class ExtractorFramework(pl.LightningModule):
         Returns:
             None
         """
-        save_dir = get_features_dir_name(self.config)
-
-        if not save_dir.exists():
-            save_dir.mkdir(parents=True)
-
         torch.save(
-            torch.cat(self.all_features), save_dir / (features_file_name + ".pt")
+            torch.cat(self.all_features), self.save_dir / (features_file_name + ".pt")
         )
 
 
@@ -118,9 +114,11 @@ def main(config):
     Returns:
         None
     """
-    trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=True)
-
+    trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=False)
     extractor = ExtractorFramework(config)
+
+    if not extractor.save_dir.exists():
+            extractor.save_dir.mkdir(parents=True)
 
     coordinates_dir = get_patch_coordinates_dir_name(config)
 

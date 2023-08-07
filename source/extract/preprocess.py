@@ -105,9 +105,6 @@ class Preprocessor:
             slide_name = Path(slide_path).stem
             cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
 
-            if not self.patch_coordinates_save_dir_path.exists():
-                self.patch_coordinates_save_dir_path.mkdir(parents=True)
-
             cross_section_save_path = (
                 self.patch_coordinates_save_dir_path / cross_section_name
             )
@@ -381,8 +378,9 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
-    # for slide in tqdm(list_all_slide_file_paths(config["slides_dir"])):
-    #     preprocessor(slide)
+    if not preprocessor.patch_coordinates_save_dir_path.exists():
+        preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True)
+
     Parallel(n_jobs=config["preprocessing_num_workers"])(
         delayed(preprocessor)(slide)
         for slide in tqdm(list_all_slide_file_paths(config["slides_dir"]))
