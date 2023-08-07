@@ -61,6 +61,6 @@ if __name__ == "__main__":
 
     config = load_config(args.config)
 
-    torch.multiprocessing.set_start_method("spawn")
+    # torch.multiprocessing.set_start_method("spawn")
 
     main(config)
