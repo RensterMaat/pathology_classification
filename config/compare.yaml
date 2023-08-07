@@ -1,0 +1,3 @@
+slides_dir: /mnt/hpc/rens/pathology_classification/data/comparison/original/slides
+features_dir: /mnt/hpc/rens/pathology_classification/data/comparison/new/features_direct
+patch_coordinates_dir: /mnt/hpc/rens/pathology_classification/data/comparison/new/patch_coordinates

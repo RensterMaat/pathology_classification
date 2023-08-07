@@ -98,9 +98,15 @@ class ExtractorFramework(pl.LightningModule):
         Returns:
             None
         """
+
+        print(self.save_dir / (features_file_name + ".pt"))
+        print(torch.cat(self.all_features).shape)
+
         torch.save(
             torch.cat(self.all_features), self.save_dir / (features_file_name + ".pt")
         )
+
+        self.all_features = []
 
 
 def main(config):
@@ -114,13 +120,16 @@ def main(config):
     Returns:
         None
     """
-    trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=False)
+    trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=True)
     extractor = ExtractorFramework(config)
 
     if not extractor.save_dir.exists():
-            extractor.save_dir.mkdir(parents=True)
+        extractor.save_dir.mkdir(parents=True)
+
+    # print(extractor.save_dir)
 
     coordinates_dir = get_patch_coordinates_dir_name(config)
+    # print(coordinates_dir)
 
     for cross_section in tqdm(list(coordinates_dir.glob("*.json"))):
         datamodule = ExtractionDataModule(cross_section.name, config)
