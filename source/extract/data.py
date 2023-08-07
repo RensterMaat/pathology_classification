@@ -42,6 +42,8 @@ class CrossSectionDataset(Dataset):
         self.setup_patch_coordinates()
         self.setup_slide()
 
+        print("Dataset length: ", len(self.patch_coordinates))
+
     def __len__(self) -> int:
         """
         Get the number of patches.
