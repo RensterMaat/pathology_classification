@@ -236,9 +236,9 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         Args:
             config (dict): Configuration dictionary. See load_config() in
             source/utils/utils.py for more information.
-        
+
         Returns:
-            None        
+            None
         """
         super().__init__()
 
@@ -254,7 +254,7 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         )
 
         # The region level extractor does not have a convolutional patch projection
-        # layer, so we replace the convolutional patch projection layer of the 
+        # layer, so we replace the convolutional patch projection layer of the
         # vision transformer with a linear projection layer as in the original
         # implementation.
         phi = nn.Sequential(
@@ -277,10 +277,10 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass through the extractor.
-        
+
         Args:
             x (torch.Tensor): Input tensor of shape (batch_size, 3, 4096, 4096).
-        
+
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, 192).
         """
@@ -288,8 +288,7 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         x = rearrange(x, "b c h w p q -> (b h w) c p q")
 
         patch_features = self.patch_level_extractor(x)
-        patch_features = patch_features.unsqueeze(0)
-        patch_features = patch_features.unfold(1, 16, 16).transpose(1, 2)
+        patch_features = rearrange(patch_features, "(b h w) c -> b c h w", h=16, w=16)
 
         region_features = self.region_level_extractor(patch_features)
 

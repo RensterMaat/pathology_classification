@@ -158,7 +158,7 @@ class BaseHIPT:
             renamed_key = renamed_key.replace("mlp.fc2", "mlp.3")
             renamed_key = renamed_key.replace("phi.0", "conv_proj.1")
 
-            renamed_weights[renamed_key] = v
+            renamed_weights[renamed_key] = v.to("cpu")
 
         return renamed_weights
 
