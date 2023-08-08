@@ -126,10 +126,7 @@ def main(config):
     if not extractor.save_dir.exists():
         extractor.save_dir.mkdir(parents=True)
 
-    # print(extractor.save_dir)
-
     coordinates_dir = get_patch_coordinates_dir_name(config)
-    # print(coordinates_dir)
 
     for cross_section in tqdm(list(coordinates_dir.glob("*.json"))):
         datamodule = ExtractionDataModule(cross_section.name, config)
