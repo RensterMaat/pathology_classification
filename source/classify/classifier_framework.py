@@ -158,10 +158,12 @@ class ClassifierFramework(pl.LightningModule):
                 x, return_heatmap_vector=True
             )
 
-            heatmap_dir = Path(self.config["experiment_log_dir"]) / "heatmaps"
-            heatmap_dir.mkdir(exist_ok=True)
+            heatmap_vector_dir = (
+                Path(self.config["experiment_log_dir"]) / "heatmap_vectors"
+            )
+            heatmap_vector_dir.mkdir(exist_ok=True)
 
-            save_path = heatmap_dir / (slide_id + ".pt")
+            save_path = heatmap_vector_dir / (slide_id + ".pt")
             torch.save(heatmap_vector, save_path)
         else:
             y_hat = self.classifier.forward(x, return_heatmap_vector=False)
