@@ -153,21 +153,16 @@ class ClassifierFramework(pl.LightningModule):
         x, y, features_path = batch
         slide_id = Path(features_path[0]).stem
 
-        if self.config["generate_heatmaps"]:
+        if self.config["generate_heatmap_vectors"]:
             y_hat, heatmap_vector = self.classifier.forward(
                 x, return_heatmap_vector=True
-            )
-            heatmap = self.heatmap_generator(heatmap_vector, slide_id)
-            heatmap.axes[0].set_title(
-                f"Label: {y.argmax().cpu()} - Prediction: {y_hat[0,1].cpu():.3f}"
             )
 
             heatmap_dir = Path(self.config["experiment_log_dir"]) / "heatmaps"
             heatmap_dir.mkdir(exist_ok=True)
 
-            save_path = heatmap_dir / (slide_id + ".jpg")
-            heatmap.savefig(save_path)
-            plt.close("all")
+            save_path = heatmap_dir / (slide_id + ".pt")
+            torch.save(heatmap_vector, save_path)
         else:
             y_hat = self.classifier.forward(x, return_heatmap_vector=False)
 
