@@ -1,10 +1,7 @@
 # data paths
 dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/premium
-features_dir: 
-slides_dir: /hpc/dla_patho/premium/pathology/slides
-segmentations_dir:
-patch_coordinates_dir: 
-output_dir: 
+slide_paths_txt_file: /hpc/dla_patho/premium/rens/pathology_classification/data/premium/slide_list.txt
+
 
 # preprocessing
 patch_dimensions: [4096, 4096]
