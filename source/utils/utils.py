@@ -165,7 +165,6 @@ def load_config(config_path: str | os.PathLike) -> dict:
 
     for directory in [
         "features",
-        "slides",
         "patch_coordinates",
         "segmentations",
         "cross_val_splits",

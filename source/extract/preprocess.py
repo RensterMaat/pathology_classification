@@ -378,12 +378,15 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
+    with open(config["slide_paths_txt_file"], "r") as f:
+        slide_paths = f.read().splitlines()
+
     if not preprocessor.patch_coordinates_save_dir_path.exists():
         preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True)
 
     Parallel(n_jobs=config["preprocessing_num_workers"])(
         delayed(preprocessor)(slide)
-        for slide in tqdm(list_all_slide_file_paths(config["slides_dir"]))
+        for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides")
     )
 
 

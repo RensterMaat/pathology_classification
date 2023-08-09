@@ -1,12 +1,13 @@
 # data paths
-dataset_dir: /home/rens/repos/pathology_classification/data/example_dataset
+dataset_dir:
 cross_val_splits_dir: 
 features_dir: 
-slides_dir:
 segmentations_dir:
 patch_coordinates_dir: 
 tiles_dir: 
 output_dir: 
+
+slide_paths_txt_file: 
 
 # preprocessing
 preprocessing_level: 8
@@ -50,7 +51,7 @@ n_layers: 2
 learning_rate: 2e-4
 weight_decay: 1e-5
 patience: 10
-num_workers: 4
+num_workers: -1
 seed: 0 
 max_epochs: 100
 patience: 10

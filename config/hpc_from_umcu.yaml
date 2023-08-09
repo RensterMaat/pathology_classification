@@ -1,11 +1,7 @@
 # data paths
-dataset_dir: /mnt/hpc/rens/pathology_classification/data/premium
-cross_val_splits_dir: 
-features_dir: 
+dataset_dir: /mnt/hpc/rens/pathology_classification/data/premium 
 slides_dir: /mnt/hpc/pathology/slides
-segmentations_dir:
-patch_coordinates_dir: 
-output_dir: 
+
 
 # preprocessing
 patch_dimensions: [4096, 4096]
