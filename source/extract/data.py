@@ -95,9 +95,11 @@ class CrossSectionDataset(Dataset):
             None
         """
         slide_id = self.patch_coordinates_file_name.split("_cross_section")[0]
-        slide_file_path = get_dict_of_slide_ids_vs_paths(self.config["slides_dir"])[
-            slide_id
-        ]
+
+        with open(self.config["slide_paths_txt_file"]) as f:
+            slide_file_paths = f.readlines()
+
+        slide_file_path = [x for x in slide_file_paths if slide_id in x][0].strip()
         self.slide = OpenSlide(slide_file_path)
 
 

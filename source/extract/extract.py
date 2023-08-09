@@ -99,9 +99,6 @@ class ExtractorFramework(pl.LightningModule):
             None
         """
 
-        print(self.save_dir / (features_file_name + ".pt"))
-        print(torch.cat(self.all_features).shape)
-
         torch.save(
             torch.cat(self.all_features), self.save_dir / (features_file_name + ".pt")
         )
