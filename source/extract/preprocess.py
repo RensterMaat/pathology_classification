@@ -20,8 +20,6 @@ from joblib import Parallel, delayed
 from source.utils.utils import (
     load_config,
     get_patch_coordinates_dir_name,
-    get_tiles_dir_name,
-    list_all_slide_file_paths,
 )
 
 
@@ -381,8 +379,7 @@ def main(config):
     with open(config["slide_paths_txt_file"], "r") as f:
         slide_paths = f.read().splitlines()
 
-    if not preprocessor.patch_coordinates_save_dir_path.exists():
-        preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True)
+    preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
 
     Parallel(
         n_jobs=config["num_workers"]

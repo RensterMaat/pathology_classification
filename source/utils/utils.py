@@ -163,15 +163,7 @@ def load_config(config_path: str | os.PathLike) -> dict:
     with open(config_path) as f:
         config.update(yaml.safe_load(f))
 
-    for directory in [
-        "features",
-        "patch_coordinates",
-        "segmentations",
-        "cross_val_splits",
-        "output",
-    ]:
-        if not f"{directory}_dir" in config or config[f"{directory}_dir"] is None:
-            config[f"{directory}_dir"] = Path(config["dataset_dir"]) / directory
+    Path(config["dataset_dir"]).mkdir(exist_ok=True)
 
     return config
 
@@ -187,23 +179,8 @@ def get_patch_coordinates_dir_name(config: dict) -> os.PathLike:
         os.PathLike: Name of the directory containing the patch coordinates.
     """
     return (
-        Path(config["patch_coordinates_dir"])
-        / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
-    )
-
-
-def get_tiles_dir_name(config: dict) -> os.PathLike:
-    """
-    Get the name of the directory containing the tiles.
-
-    Args:
-        config (dict): Configuration file.
-
-    Returns:
-        os.PathLike: Name of the directory containing the tiles.
-    """
-    return (
-        Path(config["tiles_dir"])
+        Path(config["dataset_dir"])
+        / "patch_coordinates"
         / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
     )
 
@@ -219,6 +196,7 @@ def get_features_dir_name(config):
         os.PathLike: Name of the directory containing the features.
     """
     return (
-        Path(config["features_dir"])
+        Path(config["dataset_dir"])
+        / "features"
         / f"extraction_level={config['extraction_level']}_extractor={config['extractor_model']}"
     )
