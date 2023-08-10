@@ -82,7 +82,7 @@ class ExtractorFramework(pl.LightningModule):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, num_features).
         """
-        batch_features = self.forward(batch)
+        batch_features = self.forward(batch).to('cpu').detach()
 
         self.all_features.append(batch_features)
 

@@ -63,14 +63,11 @@ class ClassifierFramework(pl.LightningModule):
 
         self.criterion = nn.BCELoss()
 
-        self.train_auc = BinaryAUROC(pos_label=1)
-        self.val_auc = BinaryAUROC(pos_label=1)
-        self.test_auc = BinaryAUROC(pos_label=1)
+        self.train_auc = BinaryAUROC()
+        self.val_auc = BinaryAUROC()
+        self.test_auc = BinaryAUROC()
 
         self.test_outputs = []
-
-        if config["generate_heatmaps"]:
-            self.heatmap_generator = HeatmapGenerator(config)
 
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False
