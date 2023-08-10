@@ -34,9 +34,7 @@ class Preprocessor:
 
     def __init__(self, config: dict) -> None:
         self.config = config
-
         self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
-        self.tiles_save_dir_path = get_tiles_dir_name(config)
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None

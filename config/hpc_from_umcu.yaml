@@ -1,6 +1,6 @@
 # data paths
 dataset_dir: /mnt/hpc/rens/pathology_classification/data/premium 
-slides_dir: /mnt/hpc/pathology/slides
+slide_paths_txt_file: /mnt/hpc/rens/pathology_classification/data/premium/slide_list.txt
 
 
 # preprocessing
