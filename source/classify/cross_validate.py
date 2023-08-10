@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/hpc_from_umcu.yaml",
+        default="config/hpc/umcu.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()

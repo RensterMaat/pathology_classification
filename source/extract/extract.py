@@ -82,7 +82,7 @@ class ExtractorFramework(pl.LightningModule):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, num_features).
         """
-        batch_features = self.forward(batch).to('cpu').detach()
+        batch_features = self.forward(batch).to("cpu").detach()
 
         self.all_features.append(batch_features)
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/default.yaml",
+        default="config/extract/default.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()

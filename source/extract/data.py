@@ -2,6 +2,7 @@ import os
 import json
 import torch
 import numpy as np
+import multiprocessing as mp
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pathlib import Path
@@ -63,7 +64,7 @@ class CrossSectionDataset(Dataset):
         """
         img = self.slide.read_region(
             location=self.patch_coordinates[ix][1],
-            level=self.config["level_during_feature_extraction"],
+            level=self.config["extraction_level"],
             size=self.patch_coordinates[ix][2],
         )
 
@@ -153,5 +154,7 @@ class ExtractionDataModule(pl.LightningDataModule):
             self.dataset,
             batch_size=self.config["extraction_batch_size"],
             shuffle=False,
-            num_workers=self.config["num_workers"],
+            num_workers=self.config["num_workers"]
+            if "num_workers" in self.config and self.config["num_workers"] is not None
+            else mp.cpu_count(),
         )

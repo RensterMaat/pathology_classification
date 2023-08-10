@@ -169,9 +169,8 @@ def load_config(config_path: str | os.PathLike) -> dict:
         "segmentations",
         "cross_val_splits",
         "output",
-        "tiles",
     ]:
-        if not config[f"{directory}_dir"]:
+        if not f"{directory}_dir" in config or config[f"{directory}_dir"] is None:
             config[f"{directory}_dir"] = Path(config["dataset_dir"]) / directory
 
     return config

@@ -5,6 +5,7 @@ import json
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 from torch.nn.functional import conv2d
 from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_holes
@@ -383,7 +384,11 @@ def main(config):
     if not preprocessor.patch_coordinates_save_dir_path.exists():
         preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True)
 
-    Parallel(n_jobs=config["preprocessing_num_workers"])(
+    Parallel(
+        n_jobs=config["num_workers"]
+        if config["num_workers"] is not None
+        else mp.cpu_count()
+    )(
         delayed(preprocessor)(slide)
         for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides")
     )
@@ -396,11 +401,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/default.yaml",
+        default="config/preprocess/default.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()
 
+    print(args.config)
     config = load_config(args.config)
 
     main(config)
