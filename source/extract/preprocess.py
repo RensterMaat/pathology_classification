@@ -82,7 +82,8 @@ class Preprocessor:
             tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
 
-        self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
+        if tile_coordinates:
+            self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
 
         return scaled_tile_coordinates
 
