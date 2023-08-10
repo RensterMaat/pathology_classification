@@ -25,7 +25,6 @@ def main(config):
 
         trainer = Trainer(
             accelerator="gpu",
-            devices=1,
             max_epochs=config["max_epochs"],
             logger=logger,
             callbacks=[

@@ -156,9 +156,9 @@ class ClassifierFramework(pl.LightningModule):
             )
 
             heatmap_vector_dir = (
-                Path(self.config["experiment_log_dir"]) / "heatmap_vectors"
+                Path(self.config["output_dir"]) / "heatmap_vectors"
             )
-            heatmap_vector_dir.mkdir(exist_ok=True)
+            heatmap_vector_dir.mkdir(exist_ok=True, parents=True)
 
             save_path = heatmap_vector_dir / (slide_id + ".pt")
             torch.save(heatmap_vector, save_path)
@@ -183,8 +183,8 @@ class ClassifierFramework(pl.LightningModule):
         results = pd.DataFrame(
             self.test_outputs, columns=["slide_id", self.config["target"], "prediction"]
         )
-        results_dir = Path(self.config["experiment_log_dir"]) / "results"
-        results_dir.mkdir(exist_ok=True)
+        results_dir = Path(self.config["output_dir"]) / "results"
+        results_dir.mkdir(exist_ok=True, parents=True)
         results.to_csv(
             results_dir / f"fold_{self.config['fold']}_test_output.csv", index=False
         )

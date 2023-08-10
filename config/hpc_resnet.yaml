@@ -16,5 +16,6 @@ patch_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classifi
 region_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
 
 # classify
+max_epochs: 10
 num_workers: 0
 n_features: 1024
