@@ -1,0 +1,2 @@
+dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/original_patches_new_features
+slide_paths_txt_file: /hpc/dla_patho/premium/rens/pathology_classification/data/original_patches_new_features/slide_list.txt

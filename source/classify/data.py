@@ -19,11 +19,11 @@ class PreextractedFeatureDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, ix: int) -> tuple[torch.Tensor, torch.Tensor, str]:
+    def __getitem__(self, ix: int) -> "tuple[torch.Tensor, torch.Tensor, str]":
         case = self.data.iloc[ix]
 
         features_dir = get_features_dir_name(self.config)
-        features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
+        features_path = str(features_dir / (case["slide_id"] + '.pt'))# + "_cross_section_0.pt"))
 
         x = torch.load(features_path).float()
         y = torch.zeros(self.config["n_classes"]).float()
@@ -36,7 +36,7 @@ class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
         self.cross_val_splits_directory = (
-            Path(config["cross_val_splits_dir"]) / f"fold_{config['fold']}"
+            Path(config["dataset_dir"]) / 'cross_val_splits' / f"fold_{config['fold']}"
         )
         self.config = config
 

@@ -19,7 +19,7 @@ def main(config):
 
     logger.experiment.config.update(config)
 
-    n_folds = len(list(Path(config["cross_val_splits_dir"]).iterdir()))
+    n_folds = len(list(Path(config["dataset_dir"], 'cross_val_splits').iterdir()))
     for fold in range(n_folds):
         config["fold"] = fold
 
