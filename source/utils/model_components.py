@@ -203,6 +203,7 @@ class BaseHIPT:
             input=patch_positional_embedding,
             scale_factor=(16.1 / 14, 16.1 / 14),
             mode="bicubic",
+            recompute_scale_factor=True,
         )
         upsampled_patch_positional_embedding = (
             upsampled_patch_positional_embedding.permute((0, 2, 3, 1))

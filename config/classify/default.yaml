@@ -1,0 +1,40 @@
+# data paths
+dataset_dir:
+
+# task
+target: label
+n_classes: 2
+
+# classifier
+classifier: AttentionClassifier
+n_features: 192
+final_activation: softmax
+dropout: False
+
+# naive pooling classifier specific parameters
+pooling_function: max
+
+# attention classifier specific parameters
+attention_dim: 128
+
+# transformer classifier specific parameters
+n_heads: 3
+activation_function: 'relu'
+n_layers: 2
+
+# training parameters
+learning_rate: 2e-4
+weight_decay: 1e-5
+patience: 10
+num_workers:
+seed: 0 
+max_epochs: 100
+patience: 10
+
+# heatmaps
+generate_heatmap_vectors: True
+level_for_visualizing_heatmap: 7
+dpi: 80
+patch_size_during_feature_extraction: 4096
+level_during_feature_extraction: 1
+
