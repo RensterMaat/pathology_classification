@@ -71,7 +71,7 @@ class CrossSectionDataset(Dataset):
         )
 
         # HIPT is pretrained to work with JPEG compressed images, so we need to compress the patches
-        # before feeding them to the model. We do this in buffer.
+        # in order to reach maximum performance. The compression is done using the PIL library in buffer.
         img_rgb = Image.fromarray(np.array(img)[:, :, :3])
         buffer = io.BytesIO()
         img_rgb.save(buffer, format="JPEG")
