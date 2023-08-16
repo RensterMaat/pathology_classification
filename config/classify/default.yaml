@@ -1,6 +1,10 @@
 # data paths
 dataset_dir:
 
+# feature extractor
+extraction_level: 1
+extractor_model: region_hipt
+
 # task
 target: label
 n_classes: 2

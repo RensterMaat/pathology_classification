@@ -7,11 +7,12 @@ from source.utils.utils import load_config
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from datetime import datetime
 
 
 def main(config):
     logger = WandbLogger(
-        save_dir=config["output_dir"], project="wsi_classification_dev"
+        save_dir=Path(config["dataset_dir"], 'output_dir', datetime.now().strftime("%Y%m%d_%H:%M:%S")), project="wsi_classification_dev"
     )
 
     config["experiment_log_dir"] = logger.experiment._settings.sync_dir
