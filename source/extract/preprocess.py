@@ -16,6 +16,7 @@ from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from PIL import Image
 
 from source.utils.utils import (
     load_config,
@@ -34,6 +35,9 @@ class Preprocessor:
     def __init__(self, config: dict) -> None:
         self.config = config
         self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
+        self.tile_images_save_dir_path = Path(
+            config["dataset_dir"], "tiles", self.patch_coordinates_save_dir_path.name
+        )
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
@@ -83,6 +87,7 @@ class Preprocessor:
 
         if tile_coordinates:
             self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
+            self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
 
         return scaled_tile_coordinates
 
@@ -92,7 +97,7 @@ class Preprocessor:
         slide_path: str | os.PathLike,
     ) -> None:
         """
-        Saves the tiles to a JSON file.
+        Saves the tile coordinates to a JSON file.
 
         Args:
             tiles: dictionary containing the tiles for each cross-section.
@@ -109,6 +114,36 @@ class Preprocessor:
 
             with open(cross_section_save_path, "w") as f:
                 json.dump(tile_coordinates[cross_section], f)
+
+    def save_tile_images(
+        self,
+        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
+        slide: OpenSlide,
+        slide_path: str | os.PathLike,
+    ) -> None:
+        """
+        Saves the tiles to a directory.
+
+        Args:
+            tile_coordinates: dictionary containing the tiles for each cross-section.
+            slide: whole-slide image.
+            slide_path: path to the whole-slide image.
+        """
+        for cross_section, coordinates in tile_coordinates.items():
+            slide_name = Path(slide_path).stem
+            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+
+            cross_section_save_dir = self.tile_images_save_dir_path / cross_section_name
+            cross_section_save_dir.mkdir(exist_ok=True)
+
+            for (_, _), (x, y), (width, height) in coordinates:
+                tile = slide.read_region(
+                    (x, y),
+                    self.config["extraction_level"],
+                    (width, height),
+                )
+                tile_rgb = Image.fromarray(np.array(tile)[:, :, :3])
+                tile_rgb.save(cross_section_save_dir / f"{x}_{y}.jpg")
 
     def scale_tiles(
         self,
@@ -380,6 +415,7 @@ def main(config):
         slide_paths = f.read().splitlines()
 
     preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
+    preprocessor.tile_images_save_dir_path.mkdir(parents=True, exist_ok=True)
 
     Parallel(
         n_jobs=config["num_workers"]
@@ -389,6 +425,8 @@ def main(config):
         delayed(preprocessor)(slide)
         for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides")
     )
+    # for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides"):
+    #     preprocessor(slide)
 
 
 if __name__ == "__main__":
@@ -398,7 +436,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/preprocess/default.yaml",
+        default="config/preprocess/umcu.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()
