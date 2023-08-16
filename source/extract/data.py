@@ -1,4 +1,5 @@
 import os
+import io
 import json
 import torch
 import numpy as np
@@ -8,6 +9,7 @@ import pytorch_lightning as pl
 from pathlib import Path
 from openslide import OpenSlide
 from torchvision.io import read_image
+from PIL import Image
 
 from source.utils.utils import (
     get_patch_coordinates_dir_name,
@@ -68,7 +70,17 @@ class CrossSectionDataset(Dataset):
             size=self.patch_coordinates[ix][2],
         )
 
-        out = torch.tensor(np.array(img)).float()[:, :, :-1].permute((2, 0, 1)) / 255
+        # HIPT is pretrained to work with JPEG compressed images, so we need to compress the patches
+        # before feeding them to the model. We do this in buffer.
+        img_rgb = Image.fromarray(np.array(img)[:, :, :3])
+        buffer = io.BytesIO()
+        img_rgb.save(buffer, format="JPEG")
+        buffer.seek(0)
+        jpg_compressed_img = Image.open(buffer)
+
+        out = (
+            torch.tensor(np.array(jpg_compressed_img)).float().permute((2, 0, 1)) / 255
+        )
         return out
 
     def setup_patch_coordinates(self):
