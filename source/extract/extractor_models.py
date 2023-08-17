@@ -306,6 +306,7 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, 3, 4096, 4096).
         """
-        return torchvision.transforms.Normalize(
-            mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]
-        )(x)
+        # return torchvision.transforms.Normalize(
+        #     mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]
+        # )(x)
+        return x
