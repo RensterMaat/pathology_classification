@@ -1,5 +1,5 @@
-dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/full_slide_comparison
-slide_paths_txt_file: /hpc/dla_patho/premium/rens/pathology_classification/data/full_slide_comparison/slide_list.txt
+dataset_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/original_patches_new_features
+slide_paths_txt_file: /hpc/dla_patho/premium/rens/pathology_classification/data/original_patches_new_features/slide_list.txt
 
 # HIPT checkpoints
 patch_level_hipt_checkpoint_path: /hpc/dla_patho/premium/rens/pathology_classification/checkpoints/vit256_small_dino.pth
