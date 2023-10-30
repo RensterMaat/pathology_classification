@@ -14,7 +14,11 @@ class PreextractedFeatureDataset(Dataset):
         self.config = config
 
         self.target = config["target"] if "target" in config.keys() else "label"
-        self.data = manifest[["slide_id", self.target]]
+
+        for subset, values in config["subset"].items():
+            manifest = manifest[manifest[subset].isin(values)]
+
+        self.data = manifest[["slide_id", self.target]].dropna()
 
     def __len__(self) -> int:
         return len(self.data)
@@ -36,7 +40,7 @@ class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
         self.cross_val_splits_directory = (
-            Path(config["dataset_dir"]) / 'cross_val_splits' / f"fold_{config['fold']}"
+            Path(config["dataset_dir"]) / "cross_val_splits" / f"fold_{config['fold']}"
         )
         self.config = config
 
