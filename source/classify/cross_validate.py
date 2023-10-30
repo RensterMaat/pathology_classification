@@ -1,4 +1,4 @@
-import torch
+import yaml
 import argparse
 from pathlib import Path
 from source.classify.classifier_framework import ClassifierFramework
@@ -17,6 +17,9 @@ def main(config):
         save_dir=config["experiment_log_dir"], project="wsi_classification_dev"
     )
     logger.experiment.config.update(config)
+
+    with open(Path(config['experiment_log_dir']) / 'config.yaml') as f:
+        yaml.safe_dump(config, f)
 
     n_folds = len(list(Path(config["dataset_dir"], 'cross_val_splits').iterdir()))
     for fold in range(n_folds):
@@ -52,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/hpc/umcu.yaml",
+        default="config/classify/hpc.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()
