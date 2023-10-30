@@ -18,9 +18,6 @@ def main(config):
     )
     logger.experiment.config.update(config)
 
-    with open(Path(config['experiment_log_dir']) / 'config.yaml') as f:
-        yaml.safe_dump(config, f)
-
     n_folds = len(list(Path(config["dataset_dir"], 'cross_val_splits').iterdir()))
     for fold in range(n_folds):
         config["fold"] = fold
@@ -46,6 +43,9 @@ def main(config):
 
         trainer.fit(model, datamodule)
         trainer.test(model, datamodule)
+
+        with open(Path(config['experiment_log_dir']) / 'config.yaml', 'w') as f:
+            yaml.safe_dump(config, f)
 
 
 if __name__ == "__main__":
