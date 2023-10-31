@@ -9,10 +9,10 @@ extractor_model: region_hipt
 target: primary
 n_classes: 2
 subset:
-  primary_vs_metastasis: [primary, metastasis]
+  primary_vs_metastasis: [metastasis]
 
 # classifier
-classifier: AttentionClassifier
+classifier: TransformerClassifier
 n_features: 192
 final_activation: softmax
 dropout: False
