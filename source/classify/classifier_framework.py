@@ -99,7 +99,7 @@ class ClassifierFramework(pl.LightningModule):
         y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
-        self.train_auc.update(y_hat.squeeze(), y.squeeze().int())
+        self.train_auc.update(y_hat[0, 1], y[0, 1].int())
 
         self.log_dict(
             {
@@ -125,7 +125,7 @@ class ClassifierFramework(pl.LightningModule):
         y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
-        self.val_auc.update(y_hat.squeeze(), y.squeeze().int())
+        self.val_auc.update(y_hat[0, 1], y[0, 1].int())
 
         self.log_dict(
             {
@@ -165,7 +165,7 @@ class ClassifierFramework(pl.LightningModule):
         else:
             y_hat = self.classifier.forward(x, return_heatmap_vector=False)
 
-        self.test_auc.update(y_hat.squeeze(), y.squeeze().int())
+        self.test_auc.update(y_hat[0, 1], y[0, 1].int())
 
         self.test_outputs.append(
             [slide_id, int(y[0, 1].detach().cpu()), float(y_hat[0, 1].detach().cpu())]
