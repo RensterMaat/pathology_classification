@@ -46,11 +46,8 @@ def main(config):
         datamodule = ClassificationDataModule(config)
         model = ClassifierFramework(config)
 
-        # trainer.fit(model, datamodule)
+        trainer.fit(model, datamodule)
         trainer.test(model, datamodule)
-
-    with open(Path(config['experiment_log_dir']) / 'config.yaml', 'w') as f:
-        yaml.safe_dump(config, f)
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ weight_decay: 1e-5
 patience: 10
 num_workers:
 seed: 0 
-max_epochs: 100
+max_epochs: 2
 patience: 10
 
 # heatmaps
