@@ -6,10 +6,10 @@ extraction_level: 1
 extractor_model: region_hipt
 
 # task
-target: dcb
+target: primary
 n_classes: 2
 subset:
-  primary_vs_metastasis: [primary]
+  primary_vs_metastasis: [primary, metastasis]
 
 # classifier
 classifier: AttentionClassifier
