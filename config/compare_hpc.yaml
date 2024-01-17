@@ -1,3 +1,0 @@
-slides_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/comparison/original/slides
-patch_coordinates_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/comparison/new/patch_coordinates
-features_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/comparison/new/features_direct

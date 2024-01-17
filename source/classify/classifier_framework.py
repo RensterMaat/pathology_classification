@@ -101,7 +101,7 @@ class ClassifierFramework(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.train_auc.update(y_hat[0, 1], y[0, 1].int())
 
-        self.log_dict(f"fold_{self.config['fold']}/train_loss", loss)
+        self.log(f"fold_{self.config['fold']}/train_loss", loss)
 
         return loss
 
@@ -126,7 +126,7 @@ class ClassifierFramework(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.val_auc.update(y_hat[0, 1], y[0, 1].int())
 
-        self.log_dict(f"fold_{self.config['fold']}/val_loss", loss)
+        self.log(f"fold_{self.config['fold']}/val_loss", loss)
 
         return loss
 

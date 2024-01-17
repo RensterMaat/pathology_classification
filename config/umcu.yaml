@@ -1,5 +1,0 @@
-dataset_dir: /home/rens/repos/pathology_classification/data/example_dataset
-slide_paths_txt_file: /home/rens/repos/pathology_classification/data/example_dataset/slide_list.txt
-
-patch_level_hipt_checkpoint_path: /home/rens/repos/pathology_classification/data/hipt_checkpoints/vit256_small_dino.pth
-region_level_hipt_checkpoint_path: /home/rens/repos/pathology_classification/data/hipt_checkpoints/vit4k_xs_dino.pth
