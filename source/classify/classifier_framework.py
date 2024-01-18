@@ -198,4 +198,5 @@ class ClassifierFramework(pl.LightningModule):
             lr=float(self.config["learning_rate"]),
             weight_decay=float(self.config["weight_decay"]),
         )
+
         return optimizer

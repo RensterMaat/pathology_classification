@@ -27,6 +27,7 @@ def main(config):
         trainer = Trainer(
             accelerator="gpu",
             max_epochs=config["max_epochs"],
+            accumulate_grad_batches=config["accumulate_grad_batches"],
             logger=logger,
             callbacks=[
                 EarlyStopping(

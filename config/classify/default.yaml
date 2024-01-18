@@ -9,13 +9,13 @@ extractor_model: region_hipt
 target: primary
 n_classes: 2
 subset:
-  primary_vs_metastasis: [metastasis]
+  primary_vs_metastasis: [primary, metastasis]
 
 # classifier
 classifier: TransformerClassifier
 n_features: 192
 final_activation: softmax
-dropout: False
+dropout: 0.25
 
 # naive pooling classifier specific parameters
 pooling_function: max
@@ -34,11 +34,13 @@ weight_decay: 1e-5
 patience: 10
 num_workers:
 seed: 0 
-max_epochs: 2
+max_epochs: 100
 patience: 10
+accumulate_grad_batches: 32
+
 
 # heatmaps
-generate_heatmap_vectors: True
+generate_heatmap_vectors: False
 level_for_visualizing_heatmap: 7
 dpi: 80
 patch_size_during_feature_extraction: 4096
