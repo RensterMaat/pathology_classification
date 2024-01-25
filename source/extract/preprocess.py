@@ -423,7 +423,9 @@ def main(config):
         else mp.cpu_count()
     )(
         delayed(preprocessor)(slide)
-        for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides")
+        for slide in tqdm(
+            slide_paths, desc="Preprocessing slides", unit="slides", leave=False
+        )
     )
 
 

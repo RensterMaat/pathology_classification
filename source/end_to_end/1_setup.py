@@ -72,6 +72,9 @@ if __name__ == "__main__":
         / "end_to_end"
         / (config_name + ".yaml")
     )
+    if config_path.exists():
+        raise FileExistsError(f"{config_path} already exists")
+
     print(
         f"Config file will be stored at {config_path}. Pass this path as an argument to the following steps of the pipeline."
     )
