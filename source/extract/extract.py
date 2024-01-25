@@ -9,6 +9,7 @@ from source.extract.extractor_models import (
     ResNet50ImagenetExtractor,
     PatchLevelHIPTFeatureExtractor,
     RegionLevelHIPTFeatureExtractor,
+    PLIPFeatureExtractor,
 )
 from source.extract.data import ExtractionDataModule
 from source.utils.utils import (
@@ -47,6 +48,8 @@ class ExtractorFramework(pl.LightningModule):
             self.extractor = PatchLevelHIPTFeatureExtractor(config)
         elif config["extractor_model"] == "region_hipt":
             self.extractor = RegionLevelHIPTFeatureExtractor(config)
+        elif config["extractor_model"] == "plip":
+            self.extractor = PLIPFeatureExtractor(config)
         else:
             raise ValueError(
                 f"Extractor model {config['extractor_model']} not recognized."
@@ -136,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/extract/default.yaml",
+        default="config/extract/umcu.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()

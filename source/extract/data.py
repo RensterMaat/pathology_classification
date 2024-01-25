@@ -91,7 +91,7 @@ class CrossSectionDataset(Dataset):
             None
         """
         patch_coordinates_dir = (
-            Path(self.config["dataset_dir"])
+            Path(self.config["output_dir"])
             / "patch_coordinates"
             / get_patch_coordinates_dir_name(self.config)
         )

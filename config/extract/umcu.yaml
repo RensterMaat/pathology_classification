@@ -1,4 +1,4 @@
-dataset_dir: /home/rens/repos/pathology_classification/data/example_dataset
+output_dir: /home/rens/repos/pathology_classification/data/example_dataset
 slide_paths_txt_file: /home/rens/repos/pathology_classification/data/example_dataset/slide_list.txt
 
 # HIPT checkpoints

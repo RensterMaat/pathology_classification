@@ -147,7 +147,7 @@ def load_config(config_path: str | os.PathLike) -> dict:
 
     Defaults to the default configuration file for keys not present in the configuration file.
     If directories for features, slides, patch coordinates, segmentations or cross-validation splits are not specified,
-    they are set to the default directories (e.g. <dataset_dir>/features).
+    they are set to the default directories (e.g. <output_dir>/features).
 
     Args:
         config_path (str | os.PathLike): Path to the configuration file.
@@ -163,7 +163,7 @@ def load_config(config_path: str | os.PathLike) -> dict:
     with open(config_path) as f:
         config.update(yaml.safe_load(f))
 
-    Path(config["dataset_dir"]).mkdir(exist_ok=True)
+    Path(config["output_dir"]).mkdir(exist_ok=True)
 
     return config
 
@@ -179,7 +179,7 @@ def get_patch_coordinates_dir_name(config: dict) -> os.PathLike:
         os.PathLike: Name of the directory containing the patch coordinates.
     """
     return (
-        Path(config["dataset_dir"])
+        Path(config["output_dir"])
         / "patch_coordinates"
         / f"extraction_level={config['extraction_level']}_patch_dimensions={config['patch_dimensions']}"
     )
@@ -196,7 +196,7 @@ def get_features_dir_name(config):
         os.PathLike: Name of the directory containing the features.
     """
     return (
-        Path(config["dataset_dir"])
+        Path(config["output_dir"])
         / "features"
         / f"extraction_level={config['extraction_level']}_extractor={config['extractor_model']}"
     )

@@ -1,0 +1,2 @@
+manifest_file_path: /mnt/hpc/pathology/raw/manifest.csv
+output_dir: /mnt/hpc/pathology/pipeline_output

@@ -1,6 +1,6 @@
 # data paths
-dataset_dir:
-slide_paths_txt_file: 
+output_dir:
+manifest_file_path: 
 
 # preprocessing
 preprocessing_level: 8
@@ -8,5 +8,5 @@ extraction_level: 1
 median_filter_size: 10
 hole_area_threshold: 1000
 min_tissue_fraction: 0.1
-patch_dimensions: [4096, 4096]
+patch_dimensions: [224, 224]
 num_workers: 

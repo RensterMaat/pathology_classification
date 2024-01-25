@@ -12,7 +12,7 @@ from datetime import datetime
 
 def main(config):
     config["experiment_log_dir"] = Path(
-        config["dataset_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
+        config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
     )
 
     logger = WandbLogger(
@@ -20,7 +20,7 @@ def main(config):
     )
     logger.experiment.config.update(config)
 
-    n_folds = len(list(Path(config["dataset_dir"], "cross_val_splits").iterdir()))
+    n_folds = len(list(Path(config["output_dir"], "cross_val_splits").iterdir()))
     for fold in range(n_folds):
         config["fold"] = fold
 

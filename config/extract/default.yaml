@@ -1,13 +1,11 @@
 # data paths
-dataset_dir:
+output_dir:
 slide_paths_txt_file:
 
 # extraction
 extraction_level: 1
-patch_dimensions: [4096, 4096]
+patch_dimensions: [224, 224]
 extraction_batch_size: 1
-extractor_model: region_hipt
+extractor_model: plip
 num_workers:
-
-
 

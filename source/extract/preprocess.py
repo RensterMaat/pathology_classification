@@ -4,7 +4,7 @@ import torch
 import json
 import math
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 import multiprocessing as mp
 from torch.nn.functional import conv2d
 from skimage.filters import threshold_otsu
@@ -36,7 +36,7 @@ class Preprocessor:
         self.config = config
         self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
         self.tile_images_save_dir_path = Path(
-            config["dataset_dir"], "tiles", self.patch_coordinates_save_dir_path.name
+            config["output_dir"], "tiles", self.patch_coordinates_save_dir_path.name
         )
 
     def __call__(
@@ -411,8 +411,8 @@ class Preprocessor:
 def main(config):
     preprocessor = Preprocessor(config)
 
-    with open(config["slide_paths_txt_file"], "r") as f:
-        slide_paths = f.read().splitlines()
+    manifest = pd.read_csv(config["manifest_file_path"])
+    slide_paths = manifest["slide_path"].values
 
     preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
     preprocessor.tile_images_save_dir_path.mkdir(parents=True, exist_ok=True)
@@ -425,8 +425,6 @@ def main(config):
         delayed(preprocessor)(slide)
         for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides")
     )
-    # for slide in tqdm(slide_paths, desc="Preprocessing slides", unit="slides"):
-    #     preprocessor(slide)
 
 
 if __name__ == "__main__":

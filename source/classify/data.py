@@ -40,7 +40,7 @@ class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
         self.cross_val_splits_directory = (
-            Path(config["dataset_dir"]) / "cross_val_splits" / f"fold_{config['fold']}"
+            Path(config["output_dir"]) / "cross_val_splits" / f"fold_{config['fold']}"
         )
         self.config = config
 

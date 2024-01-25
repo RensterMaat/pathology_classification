@@ -5,6 +5,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from torchvision.models.vision_transformer import VisionTransformer
 from einops import rearrange
+from transformers import CLIPProcessor, CLIPModel
 
 from source.utils.model_components import BaseHIPT, Lambda
 
@@ -30,10 +31,29 @@ class Extractor(nn.Module, ABC):
 
     @abstractmethod
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through the extractor.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, 3, 256, 256).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, n_features).
+        """
         pass
 
     @abstractmethod
     def transform(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Perform any necessary transformations on the input before passing it to the
+        extractor.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, 3, 256, 256).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, 3, 256, 256).
+        """
         pass
 
 
@@ -306,7 +326,35 @@ class RegionLevelHIPTFeatureExtractor(Extractor, BaseHIPT):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, 3, 4096, 4096).
         """
-        # return torchvision.transforms.Normalize(
-        #     mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]
-        # )(x)
         return x
+
+
+class PLIPFeatureExtractor(Extractor):
+    """
+    Feature extractor based on the PLIP model.
+
+    See https://github.com/PathologyFoundation/plip/tree/main for more information.
+    """
+
+    def __init__(self, config):
+        super().__init__()
+        self.model = CLIPModel.from_pretrained("vinid/plip")
+        self.processor = CLIPProcessor.from_pretrained("vinid/plip")
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Extract features from the input images.
+        """
+        return self.model.get_image_features(pixel_values=x)
+
+    def transform(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Preprocess the input images.
+        """
+
+        # Preprocessing resizes images to 224x224, so this method can adopt any
+        # image size.
+        # Rescaling is disabled, since the images are already in the range [0, 1].
+        return self.processor(images=x, return_tensors="pt", do_rescale=False)[
+            "pixel_values"
+        ].to(x.device)
