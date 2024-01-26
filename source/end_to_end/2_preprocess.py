@@ -2,25 +2,29 @@ import argparse
 import source.extract.preprocess as preprocess
 from source.utils.utils import load_config
 from tqdm import tqdm
+from collections import defaultdict
 
 
 def main(config):
+    # Format requested patch sizes and corresponding magnification levels in a dict
+    patch_sizes_vs_magnification_levels = defaultdict(set)
+    for model, settings in config["extractor_models"].items():
+        patch_sizes_vs_magnification_levels[tuple(settings["patch_dimensions"])].update(
+            settings["extraction_levels"]
+        )
+
     # Loop through all requested patch sizes
-    patch_dimensions_to_extract = config["patch_dimensions_options"]
-    for patch_dimensions in tqdm(
-        patch_dimensions_to_extract,
+    for patch_dimensions, magnification_levels in tqdm(
+        patch_sizes_vs_magnification_levels.items(),
         desc="Extracting at different patch sizes",
         unit="sizes",
         leave=False,
     ):
-        config["patch_dimensions"] = patch_dimensions
+        config["patch_dimensions"] = list(patch_dimensions)
 
-        # Loop through all requested levels
-        levels_to_extract = config[f"patch_dimension_{patch_dimensions[0]}_options"][
-            "extraction_levels"
-        ]
+        # Loop through all requested levels for this patch size
         for level in tqdm(
-            levels_to_extract,
+            magnification_levels,
             desc="Extracting at different magnification levels",
             unit="levels",
             leave=False,

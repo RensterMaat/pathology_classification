@@ -417,6 +417,15 @@ def main(config):
     preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
     preprocessor.tile_images_save_dir_path.mkdir(parents=True, exist_ok=True)
 
+    not_yet_processed = [
+        slide_path
+        for slide_path in slide_paths
+        if not (
+            preprocessor.patch_coordinates_save_dir_path
+            / f"{Path(slide_path).stem}_cross_section_0.json"
+        ).exists()
+    ]
+
     Parallel(
         n_jobs=config["num_workers"]
         if config["num_workers"] is not None
@@ -424,7 +433,7 @@ def main(config):
     )(
         delayed(preprocessor)(slide)
         for slide in tqdm(
-            slide_paths, desc="Preprocessing slides", unit="slides", leave=False
+            not_yet_processed, desc="Preprocessing slides", unit="slides", leave=False
         )
     )
 
