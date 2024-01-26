@@ -6,6 +6,9 @@ from collections import defaultdict
 
 
 def main(config):
+    # Activate the settings for preprocess from the config
+    config.update(config["preprocess"])
+
     # Format requested patch sizes and corresponding magnification levels in a dict
     patch_sizes_vs_magnification_levels = defaultdict(set)
     for model, settings in config["extractor_models"].items():

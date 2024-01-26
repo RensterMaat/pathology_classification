@@ -128,7 +128,13 @@ def main(config):
 
     coordinates_dir = get_patch_coordinates_dir_name(config)
 
-    for cross_section in tqdm(list(coordinates_dir.glob("*.json"))):
+    not_yet_processed = [
+        cross_section.stem
+        for cross_section in coordinates_dir.glob("*.json")
+        if not (extractor.save_dir / (cross_section.stem + ".pt")).exists()
+    ]
+
+    for cross_section in tqdm(not_yet_processed):
         datamodule = ExtractionDataModule(cross_section.name, config)
         trainer.test(extractor, datamodule)
         extractor.save_features(cross_section.stem)
