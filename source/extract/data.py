@@ -43,7 +43,8 @@ class CrossSectionDataset(Dataset):
         self.patch_coordinates_file_name = patch_coordinates_file_name
 
         self.setup_patch_coordinates()
-        self.setup_slide()
+        self.setup_patches()
+        # self.setup_slide()
 
     def __len__(self) -> int:
         """
@@ -64,23 +65,26 @@ class CrossSectionDataset(Dataset):
         Returns:
             torch.Tensor: Patch of dimensions (3, patch_size, patch_size) and type float with values in [0, 1].
         """
-        img = self.slide.read_region(
-            location=self.patch_coordinates[ix][1],
-            level=self.config["extraction_level"],
-            size=self.patch_coordinates[ix][2],
-        )
+        # img = self.slide.read_region(
+        #     location=self.patch_coordinates[ix][1],
+        #     level=self.config["extraction_level"],
+        #     size=self.patch_coordinates[ix][2],
+        # )
 
-        # HIPT is pretrained to work with JPEG compressed images, so we need to compress the patches
-        # in order to reach maximum performance. The compression is done using the PIL library in buffer.
-        img_rgb = Image.fromarray(np.array(img)[:, :, :3])
-        buffer = io.BytesIO()
-        img_rgb.save(buffer, format="JPEG")
-        buffer.seek(0)
-        jpg_compressed_img = Image.open(buffer)
+        # # HIPT is pretrained to work with JPEG compressed images, so we need to compress the patches
+        # # in order to reach maximum performance. The compression is done using the PIL library in buffer.
+        # img_rgb = Image.fromarray(np.array(img)[:, :, :3])
+        # buffer = io.BytesIO()
+        # img_rgb.save(buffer, format="JPEG")
+        # buffer.seek(0)
+        # jpg_compressed_img = Image.open(buffer)
 
-        out = (
-            torch.tensor(np.array(jpg_compressed_img)).float().permute((2, 0, 1)) / 255
-        )
+        x, y = self.patch_coordinates[ix][1]
+        patch_file_name = f"{x}_{y}.jpg"
+
+        patch_image = Image.open(self.patch_images_dir / patch_file_name)
+
+        out = torch.tensor(np.array(patch_image)).float().permute((2, 0, 1)) / 255
         return out
 
     def setup_patch_coordinates(self):
@@ -103,20 +107,35 @@ class CrossSectionDataset(Dataset):
         with open(patch_coordinates_file_path) as f:
             self.patch_coordinates = json.load(f)
 
-    def setup_slide(self):
+    def setup_patches(self):
         """
-        Load the slide based on the provided patch coordinate file name.
+        Load the patches based on the provided patch coordinate file name.
 
         Returns:
             None
         """
-        slide_id = self.patch_coordinates_file_name.split("_cross_section")[0]
 
-        with open(self.config["slide_paths_txt_file"]) as f:
-            slide_file_paths = f.readlines()
+        self.patch_images_dir = (
+            Path(self.config["output_dir"])
+            / "tiles"
+            / get_patch_coordinates_dir_name(self.config).name
+            / self.patch_coordinates_file_name.split(".json")[0]
+        )
 
-        slide_file_path = [x for x in slide_file_paths if slide_id in x][0].strip()
-        self.slide = OpenSlide(slide_file_path)
+    # def setup_slide(self):
+    #     """
+    #     Load the slide based on the provided patch coordinate file name.
+
+    #     Returns:
+    #         None
+    #     """
+    #     slide_id = self.patch_coordinates_file_name.split("_cross_section")[0]
+
+    #     with open(self.config["slide_paths_txt_file"]) as f:
+    #         slide_file_paths = f.readlines()
+
+    #     slide_file_path = [x for x in slide_file_paths if slide_id in x][0].strip()
+    #     self.slide = OpenSlide(slide_file_path)
 
 
 class ExtractionDataModule(pl.LightningDataModule):

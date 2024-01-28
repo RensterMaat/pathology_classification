@@ -16,6 +16,7 @@ def main(config):
         leave=False,
     ):
         config["extractor_model"] = model
+        config.update(settings)
 
         # Loop through all requested levels for this extractor model
         for level in tqdm(

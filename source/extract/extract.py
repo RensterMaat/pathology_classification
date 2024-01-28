@@ -129,7 +129,7 @@ def main(config):
     coordinates_dir = get_patch_coordinates_dir_name(config)
 
     not_yet_processed = [
-        cross_section.stem
+        cross_section
         for cross_section in coordinates_dir.glob("*.json")
         if not (extractor.save_dir / (cross_section.stem + ".pt")).exists()
     ]
