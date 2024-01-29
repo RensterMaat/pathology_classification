@@ -6,7 +6,7 @@ extraction_level: 1
 extractor_model: region_hipt
 
 # task
-target: primary
+target: dcb
 n_classes: 2
 subset:
   primary_vs_metastasis: [primary, metastasis]
