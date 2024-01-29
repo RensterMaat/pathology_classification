@@ -2,17 +2,22 @@
 manifest_file_path:                 # path to the manifest file
 output_dir:                         # path to the output directory, where all pipeline output will be stored
 
+# hipt checkpoint paths
+patch_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit256_small_dino.pth
+region_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth
+
+
 # settings which are used throughout the pipeline
 extractor_models:
-  plip:
-    extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
-    patch_dimensions: [256, 256]    # extract 256x256 patches
-    extraction_batch_size: 32       # extract 32 patches at a time
-  imagenet:
-    extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
-    patch_dimensions: [256, 256]    # extract 256x256 patches
-    extraction_batch_size: 32       # extract 32 patches at a time
-  hipt:
+  # plip:
+  #   extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
+  #   patch_dimensions: [256, 256]    # extract 256x256 patches
+  #   extraction_batch_size: 32       # extract 32 patches at a time
+  # imagenet:
+  #   extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
+  #   patch_dimensions: [256, 256]    # extract 256x256 patches
+  #   extraction_batch_size: 32       # extract 32 patches at a time
+  region_hipt:
     extraction_levels: [1]          # extract only at 20x, as HIPT is pretrained at this level
     patch_dimensions: [4096, 4096]  # extract 4096x4096 patches
     extraction_batch_size: 1        # extract 1 patch at a time
