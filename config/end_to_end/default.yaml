@@ -38,8 +38,12 @@ sweep:
   general_settings:
     method: grid
     seed: 0
-    target: primary
+    target: dcb
     n_classes: 2
+
+    subgroups:
+      primary_metastasis: [metastasis]
+
     max_epochs: 100
     patience: 10
     num_workers: 1

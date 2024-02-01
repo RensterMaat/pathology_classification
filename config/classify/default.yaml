@@ -9,8 +9,6 @@ extractor_model: resnet50_imagenet
 target: primary
 n_classes: 2
 n_folds: 5
-subset:
-  primary_vs_metastasis: [primary, metastasis]
 
 # classifier
 classifier: TransformerClassifier

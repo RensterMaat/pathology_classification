@@ -11,6 +11,10 @@ def make_train_tune_split(config):
     config["mode"] = "sweep"
 
     manifest = pd.read_csv(config["manifest_file_path"]).set_index("slide_id")
+
+    for characteristic, groups in config["subgroups"].items():
+        manifest = manifest[manifest[characteristic].isin(groups)]
+
     manifest = manifest[[config["target"]]]
     manifest = manifest.dropna()
 
@@ -70,9 +74,7 @@ def main(config):
     make_train_tune_split(config)
     wandb_sweep_config = make_wandb_sweep_config(config)
 
-    sweep_id = wandb.sweep(
-        wandb_sweep_config, project='wsi_classification'
-    )
+    sweep_id = wandb.sweep(wandb_sweep_config, project="wsi_classification")
 
     wandb.agent(sweep_id, evaluate_configuration)
 
