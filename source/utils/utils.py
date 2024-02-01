@@ -210,6 +210,9 @@ def get_cross_val_splits_dir_path(config):
     if config["mode"] == "eval":
         folder_name.append(f"n_folds={config['n_folds']}")
 
+    for characteristic, groups in config["subgroups"].items():
+        folder_name.append(f"{characteristic}={','.join(groups)}")
+
     folder_name = "_".join(folder_name)
 
     return (
