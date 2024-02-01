@@ -6,6 +6,6 @@ slide_paths_txt_file:
 extraction_level: 1
 patch_dimensions: [256, 256]
 extraction_batch_size: 64
-extractor_model: resnet50_imagenet
-num_workers: 
+extractor_model: plip
+num_workers: 1
 
