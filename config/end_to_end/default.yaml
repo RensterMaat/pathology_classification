@@ -49,7 +49,7 @@ sweep:
   fixed_hyperparameters:
     extraction_level: 1
 
-    classifier: TransformerClassifier
+    classifier: AttentionClassifier
     final_activation: softmax
     dropout: 0.25
 
@@ -69,6 +69,6 @@ sweep:
     n_layers: 2
 
   variable_hyperparameters:
-    extractor_model: [resnet50_imagenet]
+    extractor_model: [patch_hipt, region_hipt, resnet50_imagenet]
 
 

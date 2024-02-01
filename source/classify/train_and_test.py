@@ -12,6 +12,9 @@ from datetime import datetime
 def main(config):
     seed_everything(config["seed"])
 
+    if not "mode" in config:
+        config["mode"] = "eval"
+
     config["experiment_log_dir"] = Path(
         config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
     )

@@ -3,10 +3,10 @@ output_dir:
 
 # feature extractor
 extraction_level: 1
-extractor_model: region_hipt
+extractor_model: resnet50_imagenet
 
 # task
-target: dcb
+target: primary
 n_classes: 2
 n_folds: 5
 subset:
@@ -14,7 +14,6 @@ subset:
 
 # classifier
 classifier: TransformerClassifier
-n_features: 192
 final_activation: softmax
 dropout: 0.25
 
@@ -25,7 +24,7 @@ pooling_function: max
 attention_dim: 128
 
 # transformer classifier specific parameters
-n_heads: 3
+n_heads: 2
 activation_function: 'relu'
 n_layers: 2
 
