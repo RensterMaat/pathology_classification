@@ -42,7 +42,7 @@ sweep:
     n_classes: 2
 
     subgroups:
-      primary_metastasis: [metastasis]
+      primary_metastasis: [primary]
 
     max_epochs: 100
     patience: 10
