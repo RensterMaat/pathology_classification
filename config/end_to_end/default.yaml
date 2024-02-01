@@ -36,8 +36,6 @@ extract:
 # settings specifically for /source/end_to_end/4_hyperparameter_sweep.py
 sweep:
   general_settings:
-    project_name: extractors_for_prim_vs_met
-
     method: grid
     seed: 0
     target: primary
@@ -47,8 +45,6 @@ sweep:
     num_workers: 1
 
   fixed_hyperparameters:
-    extraction_level: 1
-
     classifier: AttentionClassifier
     final_activation: softmax
     dropout: 0.25
@@ -69,6 +65,15 @@ sweep:
     n_layers: 2
 
   variable_hyperparameters:
-    extractor_model: [patch_hipt, region_hipt, resnet50_imagenet]
+    level_and_extractor: [
+      extraction_level=1_extractor=patch_hipt, 
+      extraction_level=1_extractor=region_hipt, 
+      extraction_level=1_extractor=resnet50_imagenet, 
+      extraction_level=3_extractor=resnet50_imagenet, 
+      extraction_level=5_extractor=resnet50_imagenet, 
+      # extraction_level=1_extractor=plip, 
+      extraction_level=3_extractor=plip, 
+      extraction_level=5_extractor=plip, 
+    ]
 
 

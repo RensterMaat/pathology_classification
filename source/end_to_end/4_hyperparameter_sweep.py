@@ -56,6 +56,13 @@ def evaluate_configuration():
     wandb.config["mode"] = "sweep"
     wandb.config["n_folds"] = 1
 
+    wandb.config["extraction_level"] = int(
+        wandb.config["level_and_extractor"].split("_extractor")[0].split("=")[1]
+    )
+    wandb.config["extractor_model"] = wandb.config["level_and_extractor"].split(
+        "_extractor="
+    )[1]
+
     train_and_test.main(wandb.config)
 
 
