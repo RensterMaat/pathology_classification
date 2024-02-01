@@ -64,7 +64,7 @@ def main(config):
     wandb_sweep_config = make_wandb_sweep_config(config)
 
     sweep_id = wandb.sweep(
-        wandb_sweep_config, project=config["sweep"]["general_settings"]["project_name"]
+        wandb_sweep_config, project='wsi_classification'
     )
 
     wandb.agent(sweep_id, evaluate_configuration)

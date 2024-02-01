@@ -11,4 +11,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    wandb.agent(args.sweep_id, sweep.evaluate_configuration)
+    wandb.agent(args.sweep_id, sweep.evaluate_configuration, project='wsi_classification')
