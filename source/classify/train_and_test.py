@@ -1,16 +1,17 @@
-import yaml
 import argparse
 from pathlib import Path
 from source.classify.classifier_framework import ClassifierFramework
 from source.classify.data import ClassificationDataModule
 from source.utils.utils import load_config
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from datetime import datetime
 
 
 def main(config):
+    seed_everything(config["seed"])
+
     config["experiment_log_dir"] = Path(
         config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
     )
@@ -20,8 +21,7 @@ def main(config):
     )
     logger.experiment.config.update(config)
 
-    n_folds = len(list(Path(config["output_dir"], "cross_val_splits").iterdir()))
-    for fold in range(n_folds):
+    for fold in range(config["n_folds"]):
         config["fold"] = fold
 
         trainer = Trainer(
@@ -36,7 +36,7 @@ def main(config):
                     mode="max",
                 ),
                 ModelCheckpoint(
-                    config["experiment_log_dir"] / "checkpoints",
+                    Path(config["experiment_log_dir"]) / "checkpoints",
                     monitor=f"fold_{fold}/val_auc",
                     mode="max",
                     filename=f"fold={fold}_" + "{epoch:02d}",
@@ -48,7 +48,9 @@ def main(config):
         model = ClassifierFramework(config)
 
         trainer.fit(model, datamodule)
-        trainer.test(model, datamodule)
+
+        if (datamodule.cross_val_splits_directory / "test.csv").exists():
+            trainer.test(model, datamodule)
 
 
 if __name__ == "__main__":

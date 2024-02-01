@@ -200,3 +200,18 @@ def get_features_dir_name(config):
         / "features"
         / f"extraction_level={config['extraction_level']}_extractor={config['extractor_model']}"
     )
+
+
+def get_cross_val_splits_dir_path(config):
+    folder_name = []
+    for field in ["target", "seed"]:
+        folder_name.append(f"{field}={config[field]}")
+
+    if config["mode"] == "eval":
+        folder_name.append(f"n_folds={config['n_folds']}")
+
+    folder_name = "_".join(folder_name)
+
+    return (
+        Path(config["output_dir"]) / "cross_val_splits" / config["mode"] / folder_name
+    )

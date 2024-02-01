@@ -18,6 +18,17 @@ class Classifier(nn.Module, ABC):
         else:
             raise NotImplementedError
 
+        if config["extractor_model"] == "region_hipt":
+            config["n_features"] = 192
+        elif config["extractor_model"] == "patch_hipt":
+            config["n_features"] = 384
+        elif config["extractor_model"] == "resnet50_imagenet":
+            config["n_features"] = 1024
+        elif config["extractor_model"] == "plip":
+            config["n_features"] = 512
+        else:
+            raise NotImplementedError
+
     @abstractmethod
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False

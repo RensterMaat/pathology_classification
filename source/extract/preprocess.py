@@ -136,6 +136,14 @@ class Preprocessor:
             cross_section_save_dir = self.tile_images_save_dir_path / cross_section_name
             cross_section_save_dir.mkdir(exist_ok=True)
 
+            if config["num_workers"] == 1:
+                coordinates = tqdm(
+                    coordinates,
+                    desc=f"Saving patches for {slide_name}",
+                    unit="patches",
+                    leave=False,
+                )
+
             for (_, _), (x, y), (width, height) in coordinates:
                 tile = slide.read_region(
                     (x, y),
@@ -408,6 +416,40 @@ class Preprocessor:
         return rmin, rmax, cmin, cmax
 
 
+def find_partially_processed_cross_sections(
+    slide_paths, patch_coordinates_save_dir_path, tile_images_save_dir_path
+):
+    """
+    Find cross-sections that have been partially processed.
+
+    Args:
+        patch_coordinates_save_dir_path: path to the directory containing the patch coordinates.
+        tile_images_save_dir_path: path to the directory containing the tile images.
+
+    Returns:
+        partially_processed: list of cross-sections that have been partially processed.
+    """
+    partially_processed = []
+    for slide in tqdm(
+        slide_paths, leave=False, desc="Checking for partially processed slides"
+    ):
+        patch_coordinates_file_path = patch_coordinates_save_dir_path / (
+            Path(slide).stem + "_cross_section_0.json"
+        )
+        with open(patch_coordinates_file_path) as f:
+            patch_coordinates = json.load(f)
+        expected_number_of_patches = len(patch_coordinates)
+        extracted_number_of_patches = len(
+            list(
+                (tile_images_save_dir_path / patch_coordinates_file_path.stem).iterdir()
+            )
+        )
+        if expected_number_of_patches != extracted_number_of_patches:
+            partially_processed.append(slide)
+
+    return partially_processed
+
+
 def main(config):
     preprocessor = Preprocessor(config)
 
@@ -417,6 +459,7 @@ def main(config):
     preprocessor.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
     preprocessor.tile_images_save_dir_path.mkdir(parents=True, exist_ok=True)
 
+    # only process slides that have not yet been processed
     not_yet_processed = [
         slide_path
         for slide_path in slide_paths
@@ -426,15 +469,25 @@ def main(config):
         ).exists()
     ]
 
+    # add to this the slides which have been only partially processed
+    already_processed = [
+        slide_path for slide_path in slide_paths if not slide_path in not_yet_processed
+    ]
+    only_partially_processed = find_partially_processed_cross_sections(
+        already_processed,
+        preprocessor.patch_coordinates_save_dir_path,
+        preprocessor.tile_images_save_dir_path,
+    )
+
+    todo = not_yet_processed + only_partially_processed
+
     Parallel(
         n_jobs=config["num_workers"]
         if config["num_workers"] is not None
         else mp.cpu_count()
     )(
         delayed(preprocessor)(slide)
-        for slide in tqdm(
-            not_yet_processed, desc="Preprocessing slides", unit="slides", leave=False
-        )
+        for slide in tqdm(todo, desc="Preprocessing slides", unit="slides", leave=False)
     )
 
 

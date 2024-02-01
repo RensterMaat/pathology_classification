@@ -8,6 +8,7 @@ extractor_model: region_hipt
 # task
 target: dcb
 n_classes: 2
+n_folds: 5
 subset:
   primary_vs_metastasis: [primary, metastasis]
 
@@ -32,7 +33,7 @@ n_layers: 2
 learning_rate: 2e-4
 weight_decay: 1e-5
 patience: 10
-num_workers:
+num_workers: 0
 seed: 0 
 max_epochs: 100
 patience: 10
@@ -46,3 +47,4 @@ dpi: 80
 patch_size_during_feature_extraction: 4096
 level_during_feature_extraction: 1
 
+mode: eval

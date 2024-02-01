@@ -8,5 +8,5 @@ extraction_level: 1
 median_filter_size: 10
 hole_area_threshold: 1000
 min_tissue_fraction: 0.1
-patch_dimensions: [224, 224]
-num_workers: 
+patch_dimensions: [256, 256]
+num_workers: 1

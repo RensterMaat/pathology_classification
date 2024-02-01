@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 import multiprocessing as mp
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
-from source.utils.utils import get_features_dir_name
+from source.utils.utils import get_features_dir_name, get_cross_val_splits_dir_path
 
 
 class PreextractedFeatureDataset(Dataset):
@@ -15,8 +15,8 @@ class PreextractedFeatureDataset(Dataset):
 
         self.target = config["target"] if "target" in config.keys() else "label"
 
-        for subset, values in config["subset"].items():
-            manifest = manifest[manifest[subset].isin(values)]
+        # for subset, values in config["subset"].items():
+        #     manifest = manifest[manifest[subset].isin(values)]
 
         self.data = manifest[["slide_id", self.target]].dropna()
 
@@ -27,7 +27,7 @@ class PreextractedFeatureDataset(Dataset):
         case = self.data.iloc[ix]
 
         features_dir = get_features_dir_name(self.config)
-        features_path = str(features_dir / (case["slide_id"] + ".pt"))
+        features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
 
         x = torch.load(features_path).float()
         y = torch.zeros(self.config["n_classes"]).float()
@@ -40,7 +40,7 @@ class ClassificationDataModule(pl.LightningDataModule):
     def __init__(self, config: dict) -> None:
         super().__init__()
         self.cross_val_splits_directory = (
-            Path(config["output_dir"]) / "cross_val_splits" / f"fold_{config['fold']}"
+            get_cross_val_splits_dir_path(config) / f"fold_{config['fold']}"
         )
         self.config = config
 
