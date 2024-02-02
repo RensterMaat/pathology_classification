@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 from pathlib import Path
 from source.classify.classifier_framework import ClassifierFramework
 from source.classify.data import ClassificationDataModule
@@ -24,6 +25,7 @@ def main(config):
     )
     logger.experiment.config.update(config)
 
+    test_aucs = []
     for fold in range(config["n_folds"]):
         config["fold"] = fold
 
@@ -54,6 +56,12 @@ def main(config):
 
         if (datamodule.cross_val_splits_directory / "test.csv").exists():
             trainer.test(model, datamodule)
+            test_aucs.append(model.test_auc.compute())
+
+    if test_aucs:
+        print(
+            f"Mean AUC: {np.mean(test_aucs):.2f} [{min(test_aucs):.2f}, {max(test_aucs):.2f}]"
+        )
 
 
 if __name__ == "__main__":

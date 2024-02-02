@@ -37,8 +37,8 @@ extract:
 sweep:
   general_settings:
     method: grid
-    seed: 0
-    target: dcb
+    
+    target: primary
     n_classes: 2
 
     subgroups:
@@ -47,6 +47,7 @@ sweep:
     max_epochs: 100
     patience: 10
     num_workers: 1
+    seed: 0
 
   fixed_hyperparameters:
     classifier: AttentionClassifier
@@ -80,4 +81,42 @@ sweep:
       extraction_level=5_extractor=plip, 
     ]
 
+# settings specifically for /source/end_to_end/5_evaluate.py
+evaluate:
+  target: superficial_spreading
+  n_classes: 2
 
+  subgroups:
+    primary_metastasis: [primary]
+
+  n_folds: 5
+  max_epochs: 100
+  patience: 10
+  num_workers: 1
+  seed: 0
+
+  extraction_level: 1
+  extractor_model: region_hipt
+
+  classifier: TransformerClassifier
+  final_activation: softmax
+  dropout: 0.25
+
+  learning_rate: 2e-4
+  weight_decay: 1e-5
+  accumulate_grad_batches: 32
+
+  # naive pooling classifier specific parameters
+  pooling_function: max
+
+  # attention classifier specific parameters
+  attention_dim: 128
+
+  # transformer classifier specific parameters
+  n_heads: 4
+  activation_function: 'relu'
+  n_layers: 2
+
+  generate_heatmap_vectors: False
+  level_for_visualizing_heatmap: 7
+  dpi: 80
