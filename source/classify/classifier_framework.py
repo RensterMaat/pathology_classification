@@ -148,7 +148,7 @@ class ClassifierFramework(pl.LightningModule):
         x, y, features_path = batch
         slide_id = Path(features_path[0]).stem
 
-        if self.config["generate_heatmap_vectors"]:
+        if self.config["generate_heatmaps"]:
             y_hat, heatmap_vector = self.classifier.forward(
                 x, return_heatmap_vector=True
             )

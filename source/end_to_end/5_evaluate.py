@@ -1,12 +1,15 @@
+import json
 import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from datetime import datetime
+from tqdm import tqdm
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from source.utils.utils import load_config, get_cross_val_splits_dir_path
 from source.classify import train_and_test
+from source.classify.heatmap import HeatmapGenerator
 from source.utils.plot_utils import plot_roc, plot_calibration_curve
 
 
@@ -68,19 +71,46 @@ def make_plots(config):
     fig.savefig(config["experiment_log_dir"] / "results" / "calibration_curve.png")
 
 
+def make_heatmaps(config):
+    heatmap_vectors_dir = config["experiment_log_dir"] / "heatmap_vectors"
+    heatmap_dir = config["experiment_log_dir"] / "heatmaps"
+    heatmap_dir.mkdir(exist_ok=True, parents=True)
+
+    hmg = HeatmapGenerator(config)
+
+    for heatmap_vector_file in tqdm(
+        list(heatmap_vectors_dir.glob("*.pt")),
+        desc="Generating heatmaps",
+        unit="slide",
+    ):
+        fig = hmg(heatmap_vector_file)
+        fig.savefig(heatmap_dir / f"{heatmap_vector_file.stem}.png")
+
+
 def main(config):
+    # prepare config for evaluation
     config["mode"] = "evaluate"
     config.update(config["evaluate"])
-
     config["experiment_log_dir"] = Path(
         config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
     )
 
+    # split data into folds
     make_cross_val_splits(config)
 
+    # perform evaluation
     train_and_test.main(config)
 
+    # make plots
     make_plots(config)
+
+    # generate heatmaps (optional)
+    if config["generate_heatmaps"]:
+        make_heatmaps(config)
+
+    # save configuration file for reproducibility
+    with open(config["experiment_log_dir"] / "config.yaml", "w") as f:
+        json.dump(config, f)
 
 
 if __name__ == "__main__":

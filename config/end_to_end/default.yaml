@@ -90,7 +90,7 @@ evaluate:
     primary_metastasis: [primary, metastasis]
 
   n_folds: 5
-  max_epochs: 100
+  max_epochs: 2
   patience: 10
   num_workers: 1
   seed: 0
@@ -117,6 +117,6 @@ evaluate:
   activation_function: 'relu'
   n_layers: 2
 
-  generate_heatmap_vectors: False
+  generate_heatmaps: True
   level_for_visualizing_heatmap: 7
   dpi: 80

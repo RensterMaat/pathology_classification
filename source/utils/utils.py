@@ -178,6 +178,12 @@ def get_patch_coordinates_dir_name(config: dict) -> os.PathLike:
     Returns:
         os.PathLike: Name of the directory containing the patch coordinates.
     """
+    if "patch_dimensions" not in config:
+        if config["extractor_model"] == "region_hipt":
+            config["patch_dimensions"] = [4096, 4096]
+        else:
+            config["patch_dimensions"] = [256, 256]
+
     return (
         Path(config["output_dir"])
         / "patch_coordinates"

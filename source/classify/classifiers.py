@@ -103,7 +103,7 @@ class AttentionClassifier(Classifier):
         slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
-            return slide_prediction, attention_logits
+            return slide_prediction, attention
 
         return slide_prediction
 
@@ -171,6 +171,6 @@ class TransformerClassifier(Classifier):
         slide_prediction = self.final_activation(slide_logits)
 
         if return_heatmap_vector:
-            return slide_prediction, attention_logits
+            return slide_prediction, attention
 
         return slide_prediction
