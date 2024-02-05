@@ -83,11 +83,11 @@ sweep:
 
 # settings specifically for /source/end_to_end/5_evaluate.py
 evaluate:
-  target: superficial_spreading
+  target: primary
   n_classes: 2
 
   subgroups:
-    primary_metastasis: [primary]
+    primary_metastasis: [primary, metastasis]
 
   n_folds: 5
   max_epochs: 100

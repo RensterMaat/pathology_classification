@@ -14,18 +14,18 @@ def main(config):
     seed_everything(config["seed"])
 
     if not "mode" in config:
-        config["mode"] = "eval"
+        config["mode"] = "evaluate"
 
-    config["experiment_log_dir"] = Path(
-        config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
-    )
+    if not "experiment_log_dir" in config:
+        config["experiment_log_dir"] = Path(
+            config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
+        )
 
     logger = WandbLogger(
         save_dir=config["experiment_log_dir"], project="wsi_classification_dev"
     )
     logger.experiment.config.update(config)
 
-    test_aucs = []
     for fold in range(config["n_folds"]):
         config["fold"] = fold
 
@@ -56,12 +56,6 @@ def main(config):
 
         if (datamodule.cross_val_splits_directory / "test.csv").exists():
             trainer.test(model, datamodule)
-            test_aucs.append(model.test_auc.compute())
-
-    if test_aucs:
-        print(
-            f"Mean AUC: {np.mean(test_aucs):.2f} [{min(test_aucs):.2f}, {max(test_aucs):.2f}]"
-        )
 
 
 if __name__ == "__main__":

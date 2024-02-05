@@ -1,8 +1,13 @@
 import argparse
 import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+from datetime import datetime
 from sklearn.model_selection import StratifiedKFold, train_test_split
+
 from source.utils.utils import load_config, get_cross_val_splits_dir_path
 from source.classify import train_and_test
+from source.utils.plot_utils import plot_roc, plot_calibration_curve
 
 
 def make_cross_val_splits(config):
@@ -42,13 +47,40 @@ def make_cross_val_splits(config):
         test_manifest.to_csv(fold_dir / "test.csv")
 
 
+def make_plots(config):
+    all_results = []
+    for ix, fold_csv in enumerate(
+        (config["experiment_log_dir"] / "results").glob("*.csv")
+    ):
+        df = pd.read_csv(fold_csv)
+        df["fold"] = ix
+
+        all_results.append(df)
+
+    all_results = pd.concat(all_results).set_index("slide_id")
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    plot_roc(all_results, target=config["evaluate"]["target"], ax=ax)
+    fig.savefig(config["experiment_log_dir"] / "results" / "roc_curve.png")
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    plot_calibration_curve(all_results, target=config["evaluate"]["target"], ax=ax)
+    fig.savefig(config["experiment_log_dir"] / "results" / "calibration_curve.png")
+
+
 def main(config):
     config["mode"] = "evaluate"
     config.update(config["evaluate"])
 
+    config["experiment_log_dir"] = Path(
+        config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
+    )
+
     make_cross_val_splits(config)
 
     train_and_test.main(config)
+
+    make_plots(config)
 
 
 if __name__ == "__main__":
