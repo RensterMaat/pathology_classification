@@ -37,12 +37,12 @@ extract:
 sweep:
   general_settings:
     method: grid
-    
-    target: primary
+    seed: 0
+    target: typbraf0n
     n_classes: 2
 
     subgroups:
-      primary_metastasis: [primary]
+      primary_metastasis: [metastasis]
 
     max_epochs: 100
     patience: 10
