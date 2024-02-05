@@ -117,6 +117,6 @@ evaluate:
   activation_function: 'relu'
   n_layers: 2
 
-  generate_heatmaps: True
+  generate_heatmaps: False
   level_for_visualizing_heatmap: 7
   dpi: 80
