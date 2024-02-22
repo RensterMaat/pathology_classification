@@ -63,7 +63,10 @@ def plot_roc(results, target, ax):
         aucs.append(fold_auc)
         fpr, tpr, _ = roc_curve(subset[target], subset["prediction"])
         ax.plot(
-            fpr, tpr, c="gray", lw=1, label=f"Fold {fold_ix} -- AUC = {fold_auc:.2f}"
+            fpr,
+            tpr,
+            c="gray",
+            lw=1,  # , label=f"Fold {fold_ix} -- AUC = {fold_auc:.2f}"
         )
 
         interp_tpr = np.interp(mean_fpr, fpr, tpr)

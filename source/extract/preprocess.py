@@ -136,7 +136,7 @@ class Preprocessor:
             cross_section_save_dir = self.tile_images_save_dir_path / cross_section_name
             cross_section_save_dir.mkdir(exist_ok=True)
 
-            if config["num_workers"] == 1:
+            if self.config["num_workers"] == 1:
                 coordinates = tqdm(
                     coordinates,
                     desc=f"Saving patches for {slide_name}",
@@ -482,9 +482,11 @@ def main(config):
     todo = not_yet_processed + only_partially_processed
 
     Parallel(
-        n_jobs=config["num_workers"]
-        if config["num_workers"] is not None
-        else mp.cpu_count()
+        n_jobs=(
+            config["num_workers"]
+            if config["num_workers"] is not None
+            else mp.cpu_count()
+        )
     )(
         delayed(preprocessor)(slide)
         for slide in tqdm(todo, desc="Preprocessing slides", unit="slides", leave=False)

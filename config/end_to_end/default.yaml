@@ -27,7 +27,7 @@ preprocess:
   median_filter_size: 10            # size of the median filter used to smooth the foreground mask
   hole_area_threshold: 1000         # size of the holes in the foreground mask to be filled
   min_tissue_fraction: 0.1          # minimum fraction of tissue in a patch for it to be included
-  num_workers:                      # number of workers for parallel processing during tessalation
+  num_workers:   12                   # number of workers for parallel processing during tessalation
 
 # settings specifically for /source/end_to_end/3_extract.py
 extract:
@@ -83,14 +83,14 @@ sweep:
 
 # settings specifically for /source/end_to_end/5_evaluate.py
 evaluate:
-  target: primary
+  target: clark_binary
   n_classes: 2
 
   subgroups:
-    primary_metastasis: [primary, metastasis]
+    primary_metastasis: [primary]
 
   n_folds: 5
-  max_epochs: 2
+  max_epochs: 100
   patience: 10
   num_workers: 1
   seed: 0
