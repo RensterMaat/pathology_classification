@@ -13,12 +13,9 @@ class PreextractedFeatureDataset(Dataset):
         manifest = pd.read_csv(manifest_path)
         self.config = config
 
-        self.target = config["target"] if "target" in config.keys() else "label"
+        self.targets = config["targets"]
 
-        # for subset, values in config["subset"].items():
-        #     manifest = manifest[manifest[subset].isin(values)]
-
-        self.data = manifest[["slide_id", self.target]].dropna()
+        self.data = manifest[["slide_id"] + self.targets].dropna()
 
     def __len__(self) -> int:
         return len(self.data)
@@ -30,8 +27,7 @@ class PreextractedFeatureDataset(Dataset):
         features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
 
         x = torch.load(features_path).float()
-        y = torch.zeros(self.config["n_classes"]).float()
-        y[int(case[self.target])] = 1
+        y = torch.tensor(case[self.targets]).float()
 
         return x, y, features_path
 
@@ -79,7 +75,9 @@ class ClassificationDataModule(pl.LightningDataModule):
             self.test_dataset,
             batch_size=1,
             shuffle=False,
-            num_workers=self.config["num_workers"]
-            if self.config["num_workers"] is not None
-            else mp.cpu_count(),
+            num_workers=(
+                self.config["num_workers"]
+                if self.config["num_workers"] is not None
+                else mp.cpu_count()
+            ),
         )

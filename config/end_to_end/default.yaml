@@ -39,8 +39,7 @@ sweep:
     method: grid
     seed: 0
     target: typbraf0n
-    n_classes: 2
-
+    
     subgroups:
       primary_metastasis: [metastasis]
 
@@ -51,7 +50,6 @@ sweep:
 
   fixed_hyperparameters:
     classifier: AttentionClassifier
-    final_activation: softmax
     dropout: 0.25
 
     learning_rate: 2e-4
@@ -83,23 +81,25 @@ sweep:
 
 # settings specifically for /source/end_to_end/5_evaluate.py
 evaluate:
-  target: clark_binary
-  n_classes: 2
+  targets: [                    # Multitarget learning is supported. The first target is used for model checkpointing, early stopping and stratification in cross-validation.
+    dcb,
+    typbraf0n,
+    clark_binary
+  ]
 
   subgroups:
-    primary_metastasis: [primary]
+    primary_metastasis: [primary, metastasis]
 
-  n_folds: 5
-  max_epochs: 100
+  n_folds: 2
+  max_epochs: 2
   patience: 10
   num_workers: 1
   seed: 0
 
-  extraction_level: 1
-  extractor_model: region_hipt
+  extraction_level: 3
+  extractor_model: plip
 
   classifier: TransformerClassifier
-  final_activation: softmax
   dropout: 0.25
 
   learning_rate: 2e-4

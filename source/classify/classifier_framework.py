@@ -11,6 +11,7 @@ from source.classify.classifiers import (
 )
 from source.classify.heatmap import HeatmapGenerator
 from pathlib import Path
+from collections import defaultdict
 
 
 class ClassifierFramework(pl.LightningModule):
@@ -63,11 +64,16 @@ class ClassifierFramework(pl.LightningModule):
 
         self.criterion = nn.BCELoss()
 
-        self.train_auc = BinaryAUROC()
-        self.val_auc = BinaryAUROC()
-        self.test_auc = BinaryAUROC()
+        self.metrics = {
+            target: {
+                "train_auc": BinaryAUROC(),
+                "val_auc": BinaryAUROC(),
+                "test_auc": BinaryAUROC(),
+            }
+            for target in config["targets"]
+        }
 
-        self.test_outputs = []
+        self.test_outputs = defaultdict(list)
 
     def forward(
         self, x: torch.Tensor, return_heatmap_vector: bool = False
@@ -99,15 +105,21 @@ class ClassifierFramework(pl.LightningModule):
         y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
-        self.train_auc.update(y_hat[0, 1], y[0, 1].int())
+
+        for ix, target in enumerate(self.config["targets"]):
+            self.metrics[target]["train_auc"].update(y_hat[0, ix], y[0, ix].int())
 
         self.log(f"fold_{self.config['fold']}/train_loss", loss)
 
         return loss
 
     def on_train_epoch_end(self) -> None:
-        self.log(f"fold_{self.config['fold']}/train_auc", self.train_auc.compute())
-        self.train_auc.reset()
+        for target in self.config["targets"]:
+            self.log(
+                f"fold_{self.config['fold']}/{target}_train_auc",
+                self.metrics[target]["train_auc"].compute(),
+            )
+            self.metrics[target]["train_auc"].reset()
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """
@@ -124,15 +136,21 @@ class ClassifierFramework(pl.LightningModule):
         y_hat = self.classifier(x)
 
         loss = self.criterion(y_hat, y)
-        self.val_auc.update(y_hat[0, 1], y[0, 1].int())
+
+        for ix, target in enumerate(self.config["targets"]):
+            self.metrics[target]["val_auc"].update(y_hat[0, ix], y[0, ix].int())
 
         self.log(f"fold_{self.config['fold']}/val_loss", loss)
 
         return loss
 
     def on_validation_epoch_end(self) -> None:
-        self.log(f"fold_{self.config['fold']}/val_auc", self.val_auc.compute())
-        self.val_auc.reset()
+        for target in self.config["targets"]:
+            self.log(
+                f"fold_{self.config['fold']}/{target}_val_auc",
+                self.metrics[target]["val_auc"].compute(),
+            )
+            self.metrics[target]["val_auc"].reset()
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> None:
         """
@@ -163,28 +181,33 @@ class ClassifierFramework(pl.LightningModule):
         else:
             y_hat = self.classifier.forward(x, return_heatmap_vector=False)
 
-        self.test_auc.update(y_hat[0, 1], y[0, 1].int())
+        for ix, target in enumerate(self.config["targets"]):
+            self.metrics[target]["test_auc"].update(y_hat[0, ix], y[0, ix].int())
 
-        self.test_outputs.append(
-            [slide_id, int(y[0, 1].detach().cpu()), float(y_hat[0, 1].detach().cpu())]
-        )
+        self.test_outputs["slide_id"].append(slide_id)
+        for ix, target in enumerate(self.config["targets"]):
+            self.test_outputs[f"{target}_true"].append(int(y[0, ix].detach().cpu()))
+            self.test_outputs[f"{target}_prediction"].append(
+                float(y_hat[0, ix].detach().cpu())
+            )
 
     def on_test_epoch_end(self):
         """
         Saves the test outputs per slide of the current fold to a csv file.
         """
-        results = pd.DataFrame(
-            self.test_outputs, columns=["slide_id", self.config["target"], "prediction"]
-        )
+        results = pd.DataFrame(self.test_outputs)
         results_dir = Path(self.config["experiment_log_dir"]) / "results"
         results_dir.mkdir(exist_ok=True, parents=True)
         results.to_csv(
             results_dir / f"fold_{self.config['fold']}_test_output.csv", index=False
         )
 
-        self.log_dict(
-            {f"test/fold_{self.config['fold']}_auc": self.test_auc.compute()},
-        )
+        for target in self.config["targets"]:
+            self.log(
+                f"test_{target}/fold_{self.config['fold']}_auc",
+                self.metrics[target]["test_auc"].compute(),
+            )
+            self.metrics[target]["test_auc"].reset()
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         """

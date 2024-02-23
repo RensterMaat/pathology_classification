@@ -11,12 +11,7 @@ class Classifier(nn.Module, ABC):
 
         self.config = config
 
-        if config["final_activation"] == "softmax":
-            self.final_activation = nn.Softmax(dim=1)
-        elif config["final_activation"] == "sigmoid":
-            self.final_activation = nn.Sigmoid()
-        else:
-            raise NotImplementedError
+        self.final_activation = nn.Sigmoid()
 
         if config["extractor_model"] == "region_hipt":
             config["n_features"] = 192
@@ -40,7 +35,7 @@ class NaivePoolingClassifier(Classifier):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
 
-        self.classifier = nn.Linear(config["n_features"], config["n_classes"])
+        self.classifier = nn.Linear(config["n_features"], len(config["targets"]))
 
         if config["pooling_function"] == "max":
             self.pooling = nn.AdaptiveMaxPool1d(1)
@@ -75,13 +70,11 @@ class AttentionClassifier(Classifier):
         self.attention_pooling = GlobalGatedAttentionPooling(
             input_dim=config["n_features"],
             hidden_dim=config["attention_dim"],
-            output_dim=config["n_classes"],
+            output_dim=1,
             dropout=config["dropout"],
         )
 
-        self.classifiers = nn.ModuleList(
-            [nn.Linear(config["n_features"], 1) for _ in range(config["n_classes"])]
-        )
+        self.classifier = nn.Linear(config["n_features"], len(config["targets"]))
 
         self.attention_softmax = nn.Softmax(dim=0)
 
@@ -94,11 +87,7 @@ class AttentionClassifier(Classifier):
         attention = self.attention_softmax(attention_logits)
         slide_representation = torch.matmul(attention.transpose(0, 1), x)
 
-        slide_logits = []
-        for class_ix in range(self.config["n_classes"]):
-            class_logit = self.classifiers[class_ix](slide_representation[class_ix])[0]
-            slide_logits.append(class_logit)
-        slide_logits = torch.stack(slide_logits).unsqueeze(dim=0)
+        slide_logits = self.classifier(slide_representation)
 
         slide_prediction = self.final_activation(slide_logits)
 
@@ -115,7 +104,7 @@ class TransformerClassifier(Classifier):
     2. Transformer: n_patches x n_features -> n_patches x n_features
     3. Attention pooling: n_patches x n_features -> n_features
     4. Linear layer: n_features -> n_features
-    5. Classifier: n_features -> n_classes
+    5. Classifier: n_features -> 2
     """
 
     def __init__(self, config):
@@ -152,7 +141,7 @@ class TransformerClassifier(Classifier):
             nn.Dropout(config["dropout"]),
         )
 
-        self.classifier = nn.Linear(config["n_features"], config["n_classes"])
+        self.classifier = nn.Linear(config["n_features"], len(config["targets"]))
 
         self.attention_softmax = nn.Softmax(dim=0)
 

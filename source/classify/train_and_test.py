@@ -36,13 +36,13 @@ def main(config):
             logger=logger,
             callbacks=[
                 EarlyStopping(
-                    monitor=f"fold_{fold}/val_auc",
+                    monitor=f"fold_{fold}/{config['targets'][0]}_val_auc",
                     patience=config["patience"],
                     mode="max",
                 ),
                 ModelCheckpoint(
                     Path(config["experiment_log_dir"]) / "checkpoints",
-                    monitor=f"fold_{fold}/val_auc",
+                    monitor=f"fold_{fold}/{config['targets'][0]}_val_auc",
                     mode="max",
                     filename=f"fold={fold}_" + "{epoch:02d}",
                 ),

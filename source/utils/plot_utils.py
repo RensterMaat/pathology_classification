@@ -38,7 +38,7 @@ def calculate_auc_and_confidence_interval(results):
     return auc, lower, upper
 
 
-def plot_roc(results, target, ax):
+def plot_roc(results, target, prediction, ax):
     """
     Plot the ROC curve for the results of a model.
 
@@ -49,6 +49,7 @@ def plot_roc(results, target, ax):
     """
 
     results["label"] = results[target]
+    results["prediction"] = results[prediction]
 
     auc, lower, upper = calculate_auc_and_confidence_interval(results)
 
@@ -59,9 +60,9 @@ def plot_roc(results, target, ax):
 
     for fold_ix in results.fold.unique():
         subset = results[results.fold == fold_ix]
-        fold_auc = roc_auc_score(subset[target], subset["prediction"])
+        fold_auc = roc_auc_score(subset[target], subset[prediction])
         aucs.append(fold_auc)
-        fpr, tpr, _ = roc_curve(subset[target], subset["prediction"])
+        fpr, tpr, _ = roc_curve(subset[target], subset[prediction])
         ax.plot(
             fpr,
             tpr,
@@ -95,32 +96,32 @@ def plot_roc(results, target, ax):
     ax.legend(loc="lower right")
 
 
-def plot_calibration_curve(results, target, ax):
-    loess_regression = loess(results["prediction"], results[target])
+def plot_calibration_curve(results, target, prediction, ax):
+    loess_regression = loess(results[prediction], results[target])
     loess_regression.fit()
-    prediction = loess_regression.predict(
-        results["prediction"].sort_values(), stderror=True
+    loess_prediction = loess_regression.predict(
+        results[prediction].sort_values(), stderror=True
     )
 
     ax.set_title(f"Calibration curve for predicting {target}")
     ax.set_xlabel(f"Predicted probability of {target}")
     ax.set_ylabel(f"True probability of {target}")
     ax.fill_between(
-        results["prediction"].sort_values(),
-        np.clip(prediction.values - prediction.stderr, 0, 1),
-        np.clip(prediction.values + prediction.stderr, 0, 1),
+        results[prediction].sort_values(),
+        np.clip(loess_prediction.values - loess_prediction.stderr, 0, 1),
+        np.clip(loess_prediction.values + loess_prediction.stderr, 0, 1),
         alpha=0.3,
     )
-    ax.plot(results["prediction"].sort_values(), np.clip(prediction.values, 0, 1))
+    ax.plot(results[prediction].sort_values(), np.clip(loess_prediction.values, 0, 1))
     ax.plot([0, 1], [0, 1], linestyle="--", c="gray")
 
     bins = np.linspace(0, 1, 61)
 
     neg_heights, neg_bins = np.histogram(
-        results[results[target] == 0]["prediction"], bins=bins
+        results[results[target] == 0][prediction], bins=bins
     )
     pos_heights, pos_bins = np.histogram(
-        results[results[target] == 1]["prediction"], bins=bins
+        results[results[target] == 1][prediction], bins=bins
     )
     ax.bar(
         pos_bins[:-1] + (neg_bins[1] - neg_bins[0]) / 2,

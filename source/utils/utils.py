@@ -210,7 +210,7 @@ def get_features_dir_name(config):
 
 def get_cross_val_splits_dir_path(config):
     folder_name = []
-    for field in ["target", "seed"]:
+    for field in ["targets", "seed"]:
         folder_name.append(f"{field}={config[field]}")
 
     if config["mode"] == "eval":

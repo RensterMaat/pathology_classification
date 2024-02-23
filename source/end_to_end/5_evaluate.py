@@ -19,7 +19,7 @@ def make_cross_val_splits(config):
     for characteristic, groups in config["subgroups"].items():
         manifest = manifest[manifest[characteristic].isin(groups)]
 
-    manifest = manifest[[config["target"]]]
+    manifest = manifest[config["targets"]]
     manifest = manifest.dropna()
 
     save_dir = get_cross_val_splits_dir_path(config)
@@ -30,7 +30,7 @@ def make_cross_val_splits(config):
     )
 
     for fold, (train_tune_index, test_index) in enumerate(
-        skf.split(manifest.index, manifest[config["target"]])
+        skf.split(manifest.index, manifest[config["targets"][0]])
     ):
         fold_dir = save_dir / f"fold_{fold}"
         fold_dir.mkdir(exist_ok=True, parents=True)
@@ -40,7 +40,7 @@ def make_cross_val_splits(config):
             train_tune_manifest,
             test_size=0.25,
             random_state=config["seed"],
-            stratify=train_tune_manifest[config["target"]],
+            stratify=train_tune_manifest[config["targets"][0]],
         )
 
         test_manifest = manifest.iloc[test_index]
@@ -53,7 +53,7 @@ def make_cross_val_splits(config):
 def make_plots(config):
     all_results = []
     for ix, fold_csv in enumerate(
-        (config["experiment_log_dir"] / "results").glob("*.csv")
+        (Path(config["experiment_log_dir"]) / "results").glob("*.csv")
     ):
         df = pd.read_csv(fold_csv)
         df["fold"] = ix
@@ -62,13 +62,30 @@ def make_plots(config):
 
     all_results = pd.concat(all_results).set_index("slide_id")
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    plot_roc(all_results, target=config["evaluate"]["target"], ax=ax)
-    fig.savefig(config["experiment_log_dir"] / "results" / "roc_curve.png")
+    for target in config["targets"]:
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        plot_roc(
+            all_results,
+            target=f"{target}_true",
+            prediction=f"{target}_prediction",
+            ax=ax,
+        )
+        fig.savefig(
+            Path(config["experiment_log_dir"]) / "results" / f"{target}_roc_curve.png"
+        )
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    plot_calibration_curve(all_results, target=config["evaluate"]["target"], ax=ax)
-    fig.savefig(config["experiment_log_dir"] / "results" / "calibration_curve.png")
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        plot_calibration_curve(
+            all_results,
+            target=f"{target}_true",
+            prediction=f"{target}_prediction",
+            ax=ax,
+        )
+        fig.savefig(
+            Path(config["experiment_log_dir"])
+            / "results"
+            / f"{target}_calibration_curve.png"
+        )
 
 
 def make_heatmaps(config):
@@ -91,8 +108,8 @@ def main(config):
     # prepare config for evaluation
     config["mode"] = "evaluate"
     config.update(config["evaluate"])
-    config["experiment_log_dir"] = Path(
-        config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S")
+    config["experiment_log_dir"] = str(
+        Path(config["output_dir"], "output", datetime.now().strftime("%Y%m%d_%H:%M:%S"))
     )
 
     # split data into folds
@@ -109,7 +126,7 @@ def main(config):
         make_heatmaps(config)
 
     # save configuration file for reproducibility
-    with open(config["experiment_log_dir"] / "config.yaml", "w") as f:
+    with open(Path(config["experiment_log_dir"]) / "config.yaml", "w") as f:
         json.dump(config, f)
 
 
