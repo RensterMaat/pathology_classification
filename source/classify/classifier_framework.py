@@ -3,13 +3,14 @@ import torch.nn as nn
 import pandas as pd
 import pytorch_lightning as pl
 from torchmetrics.classification import BinaryAUROC
+from pathlib import Path
+from collections import defaultdict
+
 from source.classify.classifiers import (
     AttentionClassifier,
     NaivePoolingClassifier,
     TransformerClassifier,
 )
-from pathlib import Path
-from collections import defaultdict
 
 
 class ClassifierFramework(pl.LightningModule):

@@ -1,14 +1,14 @@
 import wandb
 import argparse
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
 from source.utils.utils import (
     load_general_config,
     load_specific_config,
     get_cross_val_splits_dir_path,
 )
 from source.classify import train_and_test_loop
-from sklearn.model_selection import train_test_split
-
 
 def make_train_tune_split(config):
     config.update(config["sweep"]["general_settings"])

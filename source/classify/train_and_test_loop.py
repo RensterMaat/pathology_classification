@@ -1,13 +1,11 @@
-import argparse
-import numpy as np
 from pathlib import Path
-from source.classify.classifier_framework import ClassifierFramework
-from source.classify.data import ClassificationDataModule
-from source.utils.utils import load_config
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from datetime import datetime
+
+from source.classify.classifier_framework import ClassifierFramework
+from source.classify.data import ClassificationDataModule
 
 
 def main(config):

@@ -1,8 +1,9 @@
 import argparse
-import source.tessalate.preprocessor as preprocessor
-from source.utils.utils import load_general_config, load_specific_config
 from tqdm import tqdm
 from collections import defaultdict
+
+import source.tessalate.preprocessor as preprocessor
+from source.utils.utils import load_general_config, load_specific_config
 
 
 def main(config):
