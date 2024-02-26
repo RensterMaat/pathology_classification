@@ -34,6 +34,19 @@ pip install .
 ```
 
 ## What you need to supply
+Create a manifest csv-file containing at least the columns "slide_id" and "slide_path". The slide_id column should contain a unique identifier for every whole-slide image. The slide_path column should be the absolute path to the corresponding slide. In addition, you can supply as many columns with data about these slides as desired. 
+```
+slide_id, slide_path, binary_label_1, binary_label_2, characteristic_1
+example_1, /path/to/example_1.ndpi, 1, 0, lymph_node
+...
+```
+
+Create a yaml-file in the config/general directory. Fill in the "manifest_file_path" field (the absolute path to the manifest you have created in the previous step) and the "output_dir" field (the path to the directory where the output of the pipeline should be stored). 
+```
+cd config/general
+touch my_settings.yaml
+nano my_settings.yaml
+```
 
 ## Step 1: Tessalate
 
