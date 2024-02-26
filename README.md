@@ -142,3 +142,25 @@ This step generates the following output in the output directory:
     - case_2.png
 
 ## Contributing
+### Branching model
+This is the branching model used in this repository: https://nvie.com/posts/a-successful-git-branching-model/
+
+When you want to add a feature, clone the repository and checkout the "dev" branch:
+```
+git checkout dev
+```
+From here, create and check-out your feature branch
+```
+git branch your_feature_branch_name
+git checkout your_feature_branch_name
+```
+Once you have completed work on your feature, merge/pull-request into dev
+```
+git checkout dev
+git merge your_feature_branch_name
+```
+
+### Open issues and features
+- Support for more than 2 classes per target
+- Generate thumbnails after tessellation to check results
+- Make heatmaps more clear
