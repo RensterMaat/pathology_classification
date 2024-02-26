@@ -1,11 +1,11 @@
 # pathology_classification
-Whole-slide image classification based on preextracted features.
+Binary whole-slide image classification based on preextracted features.
 
 This repository provides tools to tessalate whole-slide images, extract features using pretrained models and to train a classifier based on these preextracted features. Its functionality is divided into three steps:
 1. Tessalate: take a whole-slide image and split it into a square, non-overlapping patches.
 2. Extract: summarize these patches into a feature vector using a pretrained feature extractor.
 3. Hyperparameter sweep: explore configurations of hyperparameters to find optimal settings for the final classifier.
-4. Evaluate: train and evaluate a model.
+4. Evaluate: train and evaluate a final classifier to make binary classifications based on the preextracted features.
 
 The user needs to supply a dataset of whole-slide images, a manifest csv-file containing the path to the slides and corresponding labels, and a configuration file containing the paths to the manifest file and desired output directory.
 
