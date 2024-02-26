@@ -1,7 +1,14 @@
 # pathology_classification
-## Table of Content
 - [Overview](#overview)
   - [Repository structure](#repository-structure)
+- [Usage](#usage)
+  - [Installation](#installation)
+  - [What you need to supply](#what-you-need-to-supply)
+  - [Step 1: Tessellate](#step-1-tessellate)
+  - [Step 2: Extract features](#step-2-extract-features)
+  - [Step 3: Hyperparameter sweep](#step-3-hyperparameter-sweep)
+  - [Step 4: Evaluate](#step-4-evaluate)
+- [Contributing](#contributing)
 
 ## Overview
 Binary whole-slide image classification based on preextracted features.
