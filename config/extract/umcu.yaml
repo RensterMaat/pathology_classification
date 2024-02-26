@@ -1,6 +1,0 @@
-manifest_file_path: /mnt/hpc/pathology/raw/manifest.csv
-output_dir: /mnt/hpc/pathology/pipeline_output
-
-# HIPT checkpoints
-patch_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit256_small_dino.pth
-region_level_hipt_checkpoint_path: /mnt/hpc/rens/pathology_classification/checkpoints/vit4k_xs_dino.pth

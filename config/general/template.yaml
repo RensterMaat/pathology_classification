@@ -1,0 +1,3 @@
+# data paths
+manifest_file_path:                 # path to the manifest file
+output_dir:                         # path to the output directory, where all pipeline output will be stored

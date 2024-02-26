@@ -140,3 +140,5 @@ notebooks/spotlight_features.csv
 
 *.xlsx
 *.csv
+hpc.yaml
+umcu.yaml

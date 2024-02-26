@@ -1,5 +1,4 @@
 import os
-import argparse
 import json
 import numpy as np
 import pandas as pd
@@ -15,7 +14,6 @@ from joblib import Parallel, delayed
 from PIL import Image
 
 from source.utils.utils import (
-    load_config,
     get_patch_coordinates_dir_name,
 )
 from source.tessalate.utils import tessellate
@@ -281,21 +279,3 @@ def main(config):
         delayed(preprocessor)(slide)
         for slide in tqdm(todo, desc="Preprocessing slides", unit="slides", leave=False)
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Extracts patches from a whole-slide image."
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="config/preprocess/umcu.yaml",
-        help="Path to the config file.",
-    )
-    args = parser.parse_args()
-
-    print(args.config)
-    config = load_config(args.config)
-
-    main(config)

@@ -13,7 +13,8 @@ from source.extract.extractor_models import (
 )
 from source.extract.data import ExtractionDataModule
 from source.utils.utils import (
-    load_config,
+    load_general_config,
+    load_specific_config,
     get_features_dir_name,
     get_patch_coordinates_dir_name,
 )
@@ -145,11 +146,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/extract/umcu.yaml",
+        default="config/general/umcu.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    general_config = load_general_config(args.config)
+    specific_config = load_specific_config(args.config, "extract")
+
+    config = general_config | specific_config
 
     main(config)

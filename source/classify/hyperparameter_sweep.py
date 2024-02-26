@@ -1,7 +1,11 @@
 import wandb
 import argparse
 import pandas as pd
-from source.utils.utils import load_config, get_cross_val_splits_dir_path
+from source.utils.utils import (
+    load_general_config,
+    load_specific_config,
+    get_cross_val_splits_dir_path,
+)
 from source.classify import train_and_test_loop
 from sklearn.model_selection import train_test_split
 
@@ -87,9 +91,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Conduct a hyperparameter sweep based on the supplied configuration file."
     )
-    parser.add_argument("--config", default="config/end_to_end/umcu.yaml")
+    parser.add_argument("--config", default="config/general/umcu.yaml")
 
     args = parser.parse_args()
-    config = load_config(args.config)
+    general_config = load_general_config(args.config)
+    specific_config = load_specific_config(args.config, "hyperparamater_sweep")
+
+    config = general_config | specific_config
 
     main(config)

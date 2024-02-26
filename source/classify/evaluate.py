@@ -7,7 +7,11 @@ from datetime import datetime
 from tqdm import tqdm
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-from source.utils.utils import load_config, get_cross_val_splits_dir_path
+from source.utils.utils import (
+    load_general_config,
+    load_specific_config,
+    get_cross_val_splits_dir_path,
+)
 from source.classify import train_and_test_loop
 from source.classify.heatmap import HeatmapGenerator
 from source.utils.plot_utils import plot_roc, plot_calibration_curve
@@ -132,9 +136,12 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="config/end_to_end/umcu.yaml")
+    parser.add_argument("--config", default="config/general/umcu.yaml")
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    general_config = load_general_config(args.config)
+    specific_config = load_specific_config(args.config, "evaluate")
+
+    config = general_config | specific_config
 
     main(config)

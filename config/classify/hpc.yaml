@@ -1,3 +1,0 @@
-output_dir: /hpc/dla_patho/premium/rens/pathology_classification/data/original_patches_new_features
-num_workers: 4
-classifier: TransformerClassifier

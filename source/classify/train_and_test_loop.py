@@ -56,20 +56,3 @@ def main(config):
 
         if (datamodule.cross_val_splits_directory / "test.csv").exists():
             trainer.test(model, datamodule)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Cross validate the classifier on preextracted features."
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="/home/rens/repos/pathology_classification/config/classify/umcu.yaml",
-        help="Path to the config file.",
-    )
-    args = parser.parse_args()
-
-    config = load_config(args.config)
-
-    main(config)

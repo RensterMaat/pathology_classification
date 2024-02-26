@@ -1,0 +1,39 @@
+targets: [  # Multitarget learning is supported. The first target is used for model checkpointing, early stopping and stratification in cross-validation.
+  dcb,
+  typbraf0n,
+  clark_binary
+]
+
+subgroups:
+  primary_metastasis: [primary, metastasis]
+
+n_folds: 2
+max_epochs: 2
+patience: 10
+num_workers: 1
+seed: 0
+
+extraction_level: 3
+extractor_model: plip
+
+classifier: TransformerClassifier
+dropout: 0.25
+
+learning_rate: 2e-4
+weight_decay: 1e-5
+accumulate_grad_batches: 32
+
+# naive pooling classifier specific parameters
+pooling_function: max
+
+# attention classifier specific parameters
+attention_dim: 128
+
+# transformer classifier specific parameters
+n_heads: 4
+activation_function: 'relu'
+n_layers: 2
+
+generate_heatmaps: False
+level_for_visualizing_heatmap: 7
+dpi: 80

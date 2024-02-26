@@ -139,13 +139,9 @@ def scale_coordinates(coordinates: np.array, slide: OpenSlide, level: int) -> np
     return coordinates / scaling_factor
 
 
-def load_config(config_path: str | os.PathLike) -> dict:
+def load_general_config(general_config_path: str | os.PathLike) -> dict:
     """
     Load the configuration file.
-
-    Defaults to the default configuration file for keys not present in the configuration file.
-    If directories for features, slides, patch coordinates, segmentations or cross-validation splits are not specified,
-    they are set to the default directories (e.g. <output_dir>/features).
 
     Args:
         config_path (str | os.PathLike): Path to the configuration file.
@@ -153,15 +149,23 @@ def load_config(config_path: str | os.PathLike) -> dict:
     Returns:
         dict: Configuration file.
     """
-    default_config_path = Path(config_path).parent / "default.yaml"
-
-    with open(default_config_path) as f:
+    with open(general_config_path) as f:
         config = yaml.safe_load(f)
 
-    with open(config_path) as f:
-        config.update(yaml.safe_load(f))
-
     Path(config["output_dir"]).mkdir(exist_ok=True)
+
+    return config
+
+
+def load_specific_config(
+    general_config_path: str | os.PathLike, pipeline_step: str
+) -> dict:
+    specific_config_path = (
+        Path(general_config_path).parent.parent / "specific" / f"{pipeline_step}.yaml"
+    )
+
+    with open(specific_config_path) as f:
+        config = yaml.safe_load(f)
 
     return config
 

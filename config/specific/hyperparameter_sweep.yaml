@@ -1,0 +1,43 @@
+general_settings:
+  method: grid
+  seed: 0
+  target: typbraf0n
+  
+  subgroups:
+    primary_metastasis: [metastasis]
+
+  max_epochs: 100
+  patience: 10
+  num_workers: 1
+  seed: 0
+
+fixed_hyperparameters:
+  classifier: AttentionClassifier
+  dropout: 0.25
+
+  learning_rate: 2e-4
+  weight_decay: 1e-5
+  accumulate_grad_batches: 32
+
+  # naive pooling classifier specific parameters
+  pooling_function: max
+
+  # attention classifier specific parameters
+  attention_dim: 128
+
+  # transformer classifier specific parameters
+  n_heads: 4
+  activation_function: 'relu'
+  n_layers: 2
+
+variable_hyperparameters:
+  level_and_extractor: [
+    extraction_level=1_extractor=patch_hipt, 
+    extraction_level=1_extractor=region_hipt, 
+    extraction_level=1_extractor=resnet50_imagenet, 
+    extraction_level=3_extractor=resnet50_imagenet, 
+    extraction_level=5_extractor=resnet50_imagenet, 
+    extraction_level=1_extractor=plip, 
+    extraction_level=3_extractor=plip, 
+    extraction_level=5_extractor=plip, 
+  ]

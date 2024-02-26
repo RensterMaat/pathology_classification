@@ -1,4 +1,0 @@
-# output_dir: /mnt/hpc/rens/pathology_classification/data/original_patches_new_features
-manifest_file_path: 
-output_dir: /mnt/hpc/pathology/pipeline_output
-num_workers: 4
