@@ -11,7 +11,7 @@ This repository provides tools to tessalate whole-slide images, extract features
 ![Repository structure](repository_structure.png)
 
 ## Installation
-Install OpenSlide using the instructions in the ![documentation](https://openslide.org/api/python/#installing). 
+Install OpenSlide using the instructions in the [documentation](https://openslide.org/api/python/#installing). 
 
 ## What you need to supply
 
