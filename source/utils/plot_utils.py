@@ -22,6 +22,7 @@ def calculate_auc_and_confidence_interval(results):
 
     r_df = pandas2ri.py2rpy(results)
 
+    r("install.packages('cvAUC')")
     r("library(cvAUC)")
     r(
         """
