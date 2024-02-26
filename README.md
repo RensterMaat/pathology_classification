@@ -1,4 +1,8 @@
 # pathology_classification
+## Table of Content
+- [Overview](#overview)
+  - [Repository structure](#repository-structure)
+
 ## Overview
 Binary whole-slide image classification based on preextracted features.
 
