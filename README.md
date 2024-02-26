@@ -3,9 +3,11 @@ Whole-slide image classification based on preextracted features.
 
 This repository provides tools to tessalate whole-slide images, extract features using pretrained models and to train a classifier based on these preextracted features. Its functionality is divided into three steps:
 1. Tessalate: take a whole-slide image and split it into a square, non-overlapping patches.
-2. Extract: extract features using a pretrained feature extractor.
+2. Extract: summarize these patches into a feature vector using a pretrained feature extractor.
 3. Hyperparameter sweep: explore configurations of hyperparameters to find optimal settings for the final classifier.
-4. Evaluate: train and evaluate a model on the supplied dataset.
+4. Evaluate: train and evaluate a model.
+
+The user needs to supply a dataset of whole-slide images, a manifest csv-file containing the path to the slides and corresponding labels, and a configuration file containing the paths to the manifest file and desired output directory.
 
 ## Repository structure
 ![Repository structure](repository_structure.png)
