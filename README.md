@@ -11,7 +11,25 @@ This repository provides tools to tessalate whole-slide images, extract features
 ![Repository structure](repository_structure.png)
 
 ## Installation
-Install OpenSlide using the instructions in the [documentation](https://openslide.org/api/python/#installing). 
+Step 1: Install OpenSlide using the instructions in the [documentation](https://openslide.org/api/python/#installing). 
+
+Step 2: Follow the instructions on the [Weights & Biases website](https://docs.wandb.ai/quickstart) to sign up for an account and setup the API token on your system. 
+
+Step 3: Clone this repository:
+```
+git clone https://github.com/RensterMaat/pathology_classification.git
+cd pathology_classification
+```
+
+Step 4 (Optional): Create a fresh conda environment:
+```
+conda create -n pathology_classification python
+```
+
+Step 5: Install this repository using pip:
+```
+pip install . 
+```
 
 ## What you need to supply
 
