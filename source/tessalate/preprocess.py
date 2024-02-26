@@ -1,5 +1,5 @@
 import argparse
-import source.extract.preprocess as preprocess
+import source.tessalate.preprocessor as preprocessor
 from source.utils.utils import load_config
 from tqdm import tqdm
 from collections import defaultdict
@@ -35,7 +35,7 @@ def main(config):
             config["extraction_level"] = level
 
             # Extract patches
-            preprocess.main(config)
+            preprocessor.main(config)
 
 
 if __name__ == "__main__":

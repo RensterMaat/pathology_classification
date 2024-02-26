@@ -40,7 +40,6 @@ class CrossSectionDataset(Dataset):
 
         self.setup_patch_coordinates()
         self.setup_patches()
-        # self.setup_slide()
 
     def __len__(self) -> int:
         """

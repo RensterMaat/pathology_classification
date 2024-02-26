@@ -2,7 +2,7 @@ import wandb
 import argparse
 import pandas as pd
 from source.utils.utils import load_config, get_cross_val_splits_dir_path
-from source.classify import train_and_test
+from source.classify import train_and_test_loop
 from sklearn.model_selection import train_test_split
 
 
@@ -71,7 +71,7 @@ def evaluate_configuration():
         "_extractor="
     )[1]
 
-    train_and_test.main(wandb.config)
+    train_and_test_loop.main(wandb.config)
 
 
 def main(config):

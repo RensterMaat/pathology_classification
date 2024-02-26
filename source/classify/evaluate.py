@@ -8,7 +8,7 @@ from tqdm import tqdm
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from source.utils.utils import load_config, get_cross_val_splits_dir_path
-from source.classify import train_and_test
+from source.classify import train_and_test_loop
 from source.classify.heatmap import HeatmapGenerator
 from source.utils.plot_utils import plot_roc, plot_calibration_curve
 
@@ -116,7 +116,7 @@ def main(config):
     make_cross_val_splits(config)
 
     # perform evaluation
-    train_and_test.main(config)
+    train_and_test_loop.main(config)
 
     # make plots
     make_plots(config)
