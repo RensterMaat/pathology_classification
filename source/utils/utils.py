@@ -1,6 +1,4 @@
 import os
-
-# import h5py
 import yaml
 from pathlib import Path
 import numpy as np

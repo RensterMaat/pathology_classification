@@ -1,5 +1,4 @@
 import os
-import io
 import json
 import torch
 import numpy as np
@@ -7,13 +6,10 @@ import multiprocessing as mp
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pathlib import Path
-from openslide import OpenSlide
-from torchvision.io import read_image
 from PIL import Image
 
 from source.utils.utils import (
     get_patch_coordinates_dir_name,
-    get_dict_of_slide_ids_vs_paths,
 )
 
 
@@ -65,19 +61,6 @@ class CrossSectionDataset(Dataset):
         Returns:
             torch.Tensor: Patch of dimensions (3, patch_size, patch_size) and type float with values in [0, 1].
         """
-        # img = self.slide.read_region(
-        #     location=self.patch_coordinates[ix][1],
-        #     level=self.config["extraction_level"],
-        #     size=self.patch_coordinates[ix][2],
-        # )
-
-        # # HIPT is pretrained to work with JPEG compressed images, so we need to compress the patches
-        # # in order to reach maximum performance. The compression is done using the PIL library in buffer.
-        # img_rgb = Image.fromarray(np.array(img)[:, :, :3])
-        # buffer = io.BytesIO()
-        # img_rgb.save(buffer, format="JPEG")
-        # buffer.seek(0)
-        # jpg_compressed_img = Image.open(buffer)
 
         x, y = self.patch_coordinates[ix][1]
         patch_file_name = f"{x}_{y}.jpg"
@@ -121,21 +104,6 @@ class CrossSectionDataset(Dataset):
             / get_patch_coordinates_dir_name(self.config).name
             / self.patch_coordinates_file_name.split(".json")[0]
         )
-
-    # def setup_slide(self):
-    #     """
-    #     Load the slide based on the provided patch coordinate file name.
-
-    #     Returns:
-    #         None
-    #     """
-    #     slide_id = self.patch_coordinates_file_name.split("_cross_section")[0]
-
-    #     with open(self.config["slide_paths_txt_file"]) as f:
-    #         slide_file_paths = f.readlines()
-
-    #     slide_file_path = [x for x in slide_file_paths if slide_id in x][0].strip()
-    #     self.slide = OpenSlide(slide_file_path)
 
 
 class ExtractionDataModule(pl.LightningDataModule):
@@ -188,7 +156,10 @@ class ExtractionDataModule(pl.LightningDataModule):
             self.dataset,
             batch_size=self.config["extraction_batch_size"],
             shuffle=False,
-            num_workers=self.config["num_workers"]
-            if "num_workers" in self.config and self.config["num_workers"] is not None
-            else mp.cpu_count(),
+            num_workers=(
+                self.config["num_workers"]
+                if "num_workers" in self.config
+                and self.config["num_workers"] is not None
+                else mp.cpu_count()
+            ),
         )
