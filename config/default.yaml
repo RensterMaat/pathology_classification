@@ -1,0 +1,126 @@
+# data paths
+manifest_file_path:                 # path to the manifest file
+output_dir:                         # path to the output directory, where all pipeline output will be stored
+
+# hipt checkpoint paths
+patch_level_hipt_checkpoint_path:
+region_level_hipt_checkpoint_path:
+
+# settings which are used throughout the pipeline
+extractor_models:
+  plip:
+    extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
+    patch_dimensions: [256, 256]    # extract 256x256 patches
+    extraction_batch_size: 32       # extract 32 patches at a time
+  imagenet:
+    extraction_levels: [1, 3, 5]       # extract at 20x, 5x, and 1.5x
+    patch_dimensions: [256, 256]    # extract 256x256 patches
+    extraction_batch_size: 32       # extract 32 patches at a time
+  region_hipt:
+    extraction_levels: [1]          # extract only at 20x, as HIPT is pretrained at this level
+    patch_dimensions: [4096, 4096]  # extract 4096x4096 patches
+    extraction_batch_size: 1        # extract 1 patch at a time
+
+# settings specifically for /source/tessellate/tessellate.py
+tessellate:
+  preprocessing_level: 8            # level at which the foreground is automatically segmented
+  median_filter_size: 10            # size of the median filter used to smooth the foreground mask
+  hole_area_threshold: 1000         # size of the holes in the foreground mask to be filled
+  min_tissue_fraction: 0.1          # minimum fraction of tissue in a patch for it to be included
+  num_workers:   12                   # number of workers for parallel processing during tessalation
+
+# settings specifically for /source/extract/extract.py
+extract:
+  extraction_level: 1
+  patch_dimensions: [4096, 4096]
+  extraction_batch_size: 4
+  extractor_model: region_hipt
+  num_workers: 1
+
+# settings specifically for /source/classify/sweep.py
+sweep:
+  general_settings:
+    method: grid
+    seed: 0
+    target: typbraf0n
+    
+    subgroups:
+      primary_metastasis: [metastasis]
+
+    max_epochs: 100
+    patience: 10
+    num_workers: 1
+    seed: 0
+
+  fixed_hyperparameters:
+    classifier: AttentionClassifier
+    dropout: 0.25
+
+    learning_rate: 2e-4
+    weight_decay: 1e-5
+    accumulate_grad_batches: 32
+
+    # naive pooling classifier specific parameters
+    pooling_function: max
+
+    # attention classifier specific parameters
+    attention_dim: 128
+
+    # transformer classifier specific parameters
+    n_heads: 4
+    activation_function: 'relu'
+    n_layers: 2
+
+  variable_hyperparameters:
+    level_and_extractor: [
+      extraction_level=1_extractor=patch_hipt, 
+      extraction_level=1_extractor=region_hipt, 
+      extraction_level=1_extractor=resnet50_imagenet, 
+      extraction_level=3_extractor=resnet50_imagenet, 
+      extraction_level=5_extractor=resnet50_imagenet, 
+      # extraction_level=1_extractor=plip, 
+      extraction_level=3_extractor=plip, 
+      extraction_level=5_extractor=plip, 
+    ]
+
+# settings specifically for /source/classify/evaluate.py
+evaluate:
+  targets: [                    # Multitarget learning is supported. The first target is used for model checkpointing, early stopping and stratification in cross-validation.
+    dcb,
+    typbraf0n,
+    clark_binary
+  ]
+
+  subgroups:
+    primary_metastasis: [primary, metastasis]
+
+  n_folds: 2
+  max_epochs: 2
+  patience: 10
+  num_workers: 1
+  seed: 0
+
+  extraction_level: 3
+  extractor_model: plip
+
+  classifier: TransformerClassifier
+  dropout: 0.25
+
+  learning_rate: 2e-4
+  weight_decay: 1e-5
+  accumulate_grad_batches: 32
+
+  # naive pooling classifier specific parameters
+  pooling_function: max
+
+  # attention classifier specific parameters
+  attention_dim: 128
+
+  # transformer classifier specific parameters
+  n_heads: 4
+  activation_function: 'relu'
+  n_layers: 2
+
+  generate_heatmaps: False
+  level_for_visualizing_heatmap: 7
+  dpi: 80

@@ -2,11 +2,13 @@ import argparse
 from tqdm import tqdm
 from collections import defaultdict
 
-import source.tessalate.preprocessor as preprocessor
-from source.utils.utils import load_general_config, load_specific_config
+import source.tessellate.preprocessor as preprocessor
+from source.utils.utils import load_config
 
 
 def main(config):
+    config.update(config['tessellate'])
+
     # Format requested patch sizes and corresponding magnification levels in a dict
     patch_sizes_vs_magnification_levels = defaultdict(set)
     for model, settings in config["extractor_models"].items():
@@ -40,12 +42,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Tessalate slides at all requested levels and patch sizes"
     )
-    parser.add_argument("--config", default="config/general/umcu.yaml")
+    parser.add_argument("--config", default="config/umcu.yaml")
     args = parser.parse_args()
 
-    general_config = load_general_config(args.config)
-    specific_config = load_specific_config(args.config, "tessalate")
-
-    config = general_config | specific_config
+    config = load_config(args.config)
 
     main(config)

@@ -4,8 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from source.utils.utils import (
-    load_general_config,
-    load_specific_config,
+    load_config,
     get_cross_val_splits_dir_path,
 )
 from source.classify import train_and_test_loop
@@ -37,10 +36,6 @@ def make_train_tune_split(config):
 
 
 def make_wandb_sweep_config(config):
-    config["sweep"]["general_settings"]["targets"] = [
-        config["sweep"]["general_settings"]["target"]
-    ]
-
     sweep_config = {
         "method": config["method"],
         "metric": {"name": "fold_0/val_auc", "goal": "maximize"},
@@ -79,6 +74,10 @@ def evaluate_configuration():
 
 
 def main(config):
+    config["sweep"]["general_settings"]["targets"] = [
+        config["sweep"]["general_settings"]["target"]
+    ]
+
     make_train_tune_split(config)
     wandb_sweep_config = make_wandb_sweep_config(config)
 
@@ -91,12 +90,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Conduct a hyperparameter sweep based on the supplied configuration file."
     )
-    parser.add_argument("--config", default="config/general/umcu.yaml")
+    parser.add_argument("--config", default="config/umcu.yaml")
 
     args = parser.parse_args()
-    general_config = load_general_config(args.config)
-    specific_config = load_specific_config(args.config, "hyperparamater_sweep")
-
-    config = general_config | specific_config
+    config = load_config(args.config)
 
     main(config)

@@ -13,8 +13,7 @@ from source.extract.extractor_models import (
 )
 from source.extract.data import ExtractionDataModule
 from source.utils.utils import (
-    load_general_config,
-    load_specific_config,
+    load_config,
     get_features_dir_name,
     get_patch_coordinates_dir_name,
 )
@@ -121,6 +120,8 @@ def main(config):
     Returns:
         None
     """
+    config.update(config['extract'])
+
     trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=True)
     extractor = ExtractorFramework(config)
 
@@ -146,14 +147,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/general/umcu.yaml",
+        default="config/umcu.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()
 
-    general_config = load_general_config(args.config)
-    specific_config = load_specific_config(args.config, "extract")
-
-    config = general_config | specific_config
+    config = load_config(args.config)
 
     main(config)

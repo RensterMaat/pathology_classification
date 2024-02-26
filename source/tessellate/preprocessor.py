@@ -16,7 +16,7 @@ from PIL import Image
 from source.utils.utils import (
     get_patch_coordinates_dir_name,
 )
-from source.tessalate.utils import tessellate
+from source.tessellate.utils import tessellate
 
 
 class Preprocessor:
@@ -80,9 +80,11 @@ class Preprocessor:
             tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
 
-        if tile_coordinates:
-            self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
-            self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
+        if not tile_coordinates:
+            raise ValueError("No tiles were found.")
+
+        self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
+        self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
 
         return scaled_tile_coordinates
 

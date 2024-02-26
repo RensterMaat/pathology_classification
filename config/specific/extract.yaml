@@ -1,5 +1,0 @@
-extraction_level: 1
-patch_dimensions: [256, 256]
-extraction_batch_size: 64
-extractor_model: plip
-num_workers: 1
