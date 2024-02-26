@@ -3,6 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="source",
     packages=find_packages(),
+    version="0.0.0",
     install_requires=[
         "torch",
         "pandas",
