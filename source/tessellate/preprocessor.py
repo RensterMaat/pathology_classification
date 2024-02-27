@@ -16,7 +16,7 @@ from PIL import Image
 from source.utils.utils import (
     get_patch_coordinates_dir_name,
 )
-from source.tessellate.utils import tessellate
+from source.tessellate.tessellate_utils import tessellate
 
 
 class Preprocessor:

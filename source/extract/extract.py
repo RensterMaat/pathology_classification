@@ -11,7 +11,7 @@ from source.extract.extractor_models import (
     RegionLevelHIPTFeatureExtractor,
     PLIPFeatureExtractor,
 )
-from source.extract.data import ExtractionDataModule
+from source.extract.extract_data import ExtractionDataModule
 from source.utils.utils import (
     load_config,
     get_features_dir_name,

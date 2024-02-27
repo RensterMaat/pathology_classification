@@ -5,7 +5,7 @@ from source.classify.classifiers import (
     NaivePoolingClassifier,
     TransformerClassifier,
 )
-from source.classify.data import PreextractedFeatureDataset
+from source.classify.classify_data import PreextractedFeatureDataset
 
 
 with open("config/classify.yaml", "r") as f:

@@ -5,7 +5,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from datetime import datetime
 
 from source.classify.classifier_framework import ClassifierFramework
-from source.classify.data import ClassificationDataModule
+from source.classify.classify_data import ClassificationDataModule
 
 
 def main(config):
