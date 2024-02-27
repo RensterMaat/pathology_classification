@@ -1,6 +1,6 @@
 import yaml
 from pytorch_lightning import Trainer
-from source.classify.data import ClassificationDataModule
+from source.classify.classify_data import ClassificationDataModule
 from source.classify.classifier_framework import ClassifierFramework
 
 

@@ -1,7 +1,7 @@
 import yaml
 from pytorch_lightning import Trainer
 from source.extract.extract import ExtractorFramework
-from source.extract.data import ExtractionDataModule
+from source.extract.extract_data import ExtractionDataModule
 from pathlib import Path
 from source.utils.utils import get_patch_coordinates_dir_name, load_config
 

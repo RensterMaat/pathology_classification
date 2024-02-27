@@ -1,6 +1,6 @@
 import yaml
 from pathlib import Path
-from source.classify.data import PreextractedFeatureDataset, ClassificationDataModule
+from source.classify.classify_data import PreextractedFeatureDataset, ClassificationDataModule
 
 with open("config/classify.yaml", "r") as f:
     config = yaml.safe_load(f)

@@ -9,9 +9,11 @@
   - [Step 3: Hyperparameter sweep](#step-3-hyperparameter-sweep)
   - [Step 4: Evaluate](#step-4-evaluate)
 - [Contributing](#contributing)
+  - [Branching model](#branching-model)
+  - [Open issues and features](#open-issues-and-features)
 
 ## Overview
-Binary whole-slide image classification based on preextracted features.
+Whole-slide image classification based on preextracted features.
 
 This repository provides tools to tessalate whole-slide images, extract features using pretrained models and to train a classifier based on these preextracted features. Its functionality is divided into three steps:
 1. Tessalate: take a whole-slide image and split it into a square, non-overlapping patches.
@@ -20,6 +22,18 @@ This repository provides tools to tessalate whole-slide images, extract features
 4. Evaluate: train and evaluate a final classifier to make binary classifications based on the preextracted features.
 
 The user needs to supply a dataset of whole-slide images, a manifest csv-file containing the path to the slides and corresponding labels, and a configuration file containing the paths to the manifest file and desired output directory.
+
+### Implemented feature extractors and classifiers
+Four feature extractors are currently implemented:
+- ResNet50, pretrained on ImageNet
+- [PLIP](https://github.com/PathologyFoundation/plip)
+- Patch-level [HIPT](https://github.com/mahmoodlab/HIPT) 
+- Region-level [HIPT](https://github.com/mahmoodlab/HIPT)
+
+The implemented classifiers are:
+- Naive pooling classifier, which makes predictions of the slide-level label for every patch, and subsequently pools the predictions using a mean or max function.
+- Attention-pooling classifier, which calculates an attention score for every patch, creates a slide-level feature representation by taking the attention-weighted average of all patch-level feature representation, and finally makes a prediction based on the slide-level representation. 
+- Transformer classifier, originally developed to make predictions based on sequences of tokens. Here, a token is a single patch, whereas all patches from a single slide form a sequence. 
 
 ### Repository structure
 ![Repository structure](repository_structure.png)
@@ -93,8 +107,6 @@ In this step, the patches from step 1 are summarized into feature vectors using 
 ```
 python source/extract/extract.py --config config/my_settings.yaml
 ```
-
-The most important parameter during this step is the extractor model. Several feature extractors are already implemented, namely the [patch- and region-level HIPT extractor](https://github.com/mahmoodlab/HIPT), [PLIP model](https://github.com/PathologyFoundation/plip) and a ResNet50 model pretrained on ImageNet. 
 
 Running this step with "extractor_model" set to "plip", and "extraction_level" set to 1, will generate the following output in the output directory:
 - features
