@@ -92,8 +92,8 @@ def make_plots(config):
 
 
 def make_heatmaps(config):
-    heatmap_vectors_dir = config["experiment_log_dir"] / "heatmap_vectors"
-    heatmap_dir = config["experiment_log_dir"] / "heatmaps"
+    heatmap_vectors_dir = Path(config["experiment_log_dir"]) / "heatmap_vectors"
+    heatmap_dir = Path(config["experiment_log_dir"]) / "heatmaps"
     heatmap_dir.mkdir(exist_ok=True, parents=True)
 
     hmg = HeatmapGenerator(config)
