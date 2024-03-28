@@ -195,8 +195,8 @@ class Preprocessor:
             img_hsv, size=self.config["median_filter_size"], axes=[0, 1]
         )
 
-        otsu_threshold = threshold_otsu(img_hsv_blurred[:, :, 2])
-        segmentation = img_hsv_blurred[:, :, 2] < otsu_threshold
+        otsu_threshold = threshold_otsu(img_hsv_blurred[:, :, 1])
+        segmentation = img_hsv_blurred[:, :, 1] > otsu_threshold
         segmentation = remove_small_holes(
             segmentation, area_threshold=self.config["hole_area_threshold"]
         )
