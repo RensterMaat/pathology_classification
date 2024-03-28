@@ -52,7 +52,7 @@ cd pathology_classification
 
 Step 4: Create a fresh conda environment with Python and R.
 ```
-conda create -n pathology_classification python r-base
+conda create -n pathology_classification python=3.11.2 r-base=4.3.1
 ```
 
 Step 5: Install this repository using pip:
