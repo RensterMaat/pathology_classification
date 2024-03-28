@@ -88,13 +88,13 @@ class Preprocessor:
         segmentations = {}
         segmentations["automatic"] = self.create_segmentation(img)
         for segmentation_path_column_name in self.config[
-            "segmentation_path_column_name"
+            "segmentation_path_column_names"
         ]:
             segmentation_path = self.manifest.loc[
                 Path(slide_path).stem, segmentation_path_column_name
             ]
             segmentations[segmentation_path_column_name] = self.load_segmentation(
-                segmentation_path
+                slide, segmentation_path
             )
 
         # create union of all segmentations. This union is used for tessalation. Subsets of the extracted tiles are used later during classification.
@@ -102,12 +102,13 @@ class Preprocessor:
             (
                 slide.level_dimensions[self.config["preprocessing_level"]][1],
                 slide.level_dimensions[self.config["preprocessing_level"]][0],
+                1,
             ),
             dtype=np.uint8,
         )
         for segmentation in segmentations.values():
             union_of_all_segmentations = np.logical_or(
-                union_of_all_segmentations, segmentation[:, :, 0]
+                union_of_all_segmentations, segmentation
             )
 
         # Calculate the scaling factor between the preprocessing level and the extraction level
