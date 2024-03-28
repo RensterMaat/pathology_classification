@@ -142,3 +142,4 @@ notebooks/spotlight_features.csv
 *.csv
 hpc.yaml
 umcu.yaml
+test.yaml

@@ -27,7 +27,8 @@ tessellate:
   median_filter_size: 10            # size of the median filter used to smooth the foreground mask
   hole_area_threshold: 1000         # size of the holes in the foreground mask to be filled
   min_tissue_fraction: 0.1          # minimum fraction of tissue in a patch for it to be included
-  num_workers:   12                   # number of workers for parallel processing during tessalation
+  num_workers:   1                   # number of workers for parallel processing during tessalation
+  segmentation_path_column_names: [manual_segmentation] # column names in the manifest file that contain paths to segmentation masks. Multiple columns can be specified, all of which will be used in addition to an automatic segmentation. 
 
 # settings specifically for /source/extract/extract.py
 extract:
