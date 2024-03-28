@@ -87,23 +87,21 @@ sweep:
 # settings specifically for /source/classify/evaluate.py
 evaluate:
   targets: [ # Multitarget learning is supported. The first target is used for model checkpointing, early stopping and stratification in cross-validation.
-    dcb,
-    typbraf0n,
-    clark_binary
+    clark_binary,
   ]
 
   subgroups:
   # add subgroups here in the format: subgroup_name: [subgroups to include]. The subgroup names should match the column names in the manifest file. The subgroups to include should be the values in the column.
-    primary_metastasis: [primary, metastasis]
+    primary_metastasis: [metastasis]
 
-  n_folds: 2
-  max_epochs: 2
+  n_folds: 5
+  max_epochs: 100
   patience: 10
   num_workers: 1
   seed: 0
 
-  extraction_level: 3
-  extractor_model: plip
+  extraction_level: 1
+  extractor_model: region_hipt
 
   classifier: TransformerClassifier
   dropout: 0.25
@@ -123,6 +121,6 @@ evaluate:
   activation_function: 'relu'
   n_layers: 2
 
-  generate_heatmaps: False
+  generate_heatmaps: True
   level_for_visualizing_heatmap: 7
   dpi: 80
