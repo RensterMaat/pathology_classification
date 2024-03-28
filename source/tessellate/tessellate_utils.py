@@ -5,7 +5,7 @@ from torch.nn.functional import conv2d
 from typing import Optional
 
 
-def get_bounding_box(self, array: np.ndarray) -> Optional[tuple[int, int, int, int]]:
+def get_bounding_box(array: np.ndarray) -> Optional[tuple[int, int, int, int]]:
     """
     Returns minimum and maximum row and column index for box around
     non-zero elements.

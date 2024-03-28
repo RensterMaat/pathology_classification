@@ -7,7 +7,7 @@ from source.utils.utils import load_config
 
 
 def main(config):
-    config.update(config['tessellate'])
+    config.update(config["tessellate"])
 
     # Format requested patch sizes and corresponding magnification levels in a dict
     patch_sizes_vs_magnification_levels = defaultdict(set)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Tessalate slides at all requested levels and patch sizes"
     )
-    parser.add_argument("--config", default="config/umcu.yaml")
+    parser.add_argument("--config", default="config/test.yaml")
     args = parser.parse_args()
 
     config = load_config(args.config)

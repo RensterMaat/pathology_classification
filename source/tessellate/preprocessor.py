@@ -3,7 +3,10 @@ import json
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from skimage.filters import threshold_otsu
+from skimage.measure import find_contours
 from skimage.morphology import remove_small_holes
 from matplotlib.colors import rgb_to_hsv
 from scipy.ndimage import median_filter
@@ -30,9 +33,19 @@ class Preprocessor:
     def __init__(self, config: dict) -> None:
         self.config = config
         self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
+        self.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
+
         self.tile_images_save_dir_path = Path(
             config["output_dir"], "tiles", self.patch_coordinates_save_dir_path.name
         )
+        self.tile_images_save_dir_path.mkdir(parents=True, exist_ok=True)
+
+        self.segmentation_visualization_save_dir_path = Path(
+            config["output_dir"],
+            "segmentation_visualization",
+            self.patch_coordinates_save_dir_path.name,
+        )
+        self.segmentation_visualization_save_dir_path.mkdir(parents=True, exist_ok=True)
 
     def __call__(
         self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
@@ -75,7 +88,7 @@ class Preprocessor:
             slide.level_downsamples[preprocessing_level]
             / slide.level_downsamples[self.config["extraction_level"]]
         )
-        tile_coordinates = tessellate(segmentation, scaling_factor)
+        tile_coordinates = tessellate(segmentation, self.config, scaling_factor)
         scaled_tile_coordinates = self.scale_tiles(
             tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
@@ -85,6 +98,9 @@ class Preprocessor:
 
         self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
         self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
+        self.save_segmentation_visualization(
+            img, segmentation, tile_coordinates, scaling_factor, slide_path
+        )
 
         return scaled_tile_coordinates
 
@@ -149,6 +165,37 @@ class Preprocessor:
                 )
                 tile_rgb = Image.fromarray(np.array(tile)[:, :, :3])
                 tile_rgb.save(cross_section_save_dir / f"{x}_{y}.jpg")
+
+    def save_segmentation_visualization(
+        self,
+        image: np.ndarray,
+        segmentation: np.ndarray,
+        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
+        scaling_factor: float,
+        slide_path: str | os.PathLike,
+    ) -> None:
+        """
+        Saves the segmentation visualization to a directory.
+
+        Args:
+            segmentation: segmentation of the whole-slide image.
+            tile_coordinates: dictionary containing the tiles for each cross-section.
+            slide_path: path to the whole-slide image.
+        """
+        slide_name = Path(slide_path).stem
+
+        contours = find_contours(segmentation[:, :, 0], 0.5)
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        ax.imshow(image)
+        for contour in contours:
+            ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+        ax.axis("off")
+
+        visualization_save_path = (
+            self.segmentation_visualization_save_dir_path / f"{slide_name}.jpg"
+        )
+        fig.savefig(visualization_save_path)
 
     def scale_tiles(
         self,

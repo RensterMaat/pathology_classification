@@ -27,7 +27,7 @@ tessellate:
   median_filter_size: 10            # size of the median filter used to smooth the foreground mask
   hole_area_threshold: 1000         # size of the holes in the foreground mask to be filled
   min_tissue_fraction: 0.1          # minimum fraction of tissue in a patch for it to be included
-  num_workers:   12                   # number of workers for parallel processing during tessalation
+  num_workers:   1                   # number of workers for parallel processing during tessalation
 
 # settings specifically for /source/extract/extract.py
 extract:
