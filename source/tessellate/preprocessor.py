@@ -1,4 +1,5 @@
 import os
+import cv2
 import json
 import numpy as np
 import pandas as pd
@@ -32,6 +33,9 @@ class Preprocessor:
 
     def __init__(self, config: dict) -> None:
         self.config = config
+
+        self.manifest = pd.read_csv(config["manifest_file_path"]).set_index("slide_id")
+
         self.patch_coordinates_save_dir_path = get_patch_coordinates_dir_name(config)
         self.patch_coordinates_save_dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -48,7 +52,7 @@ class Preprocessor:
         self.segmentation_visualization_save_dir_path.mkdir(parents=True, exist_ok=True)
 
     def __call__(
-        self, slide_path: str | os.PathLike, segmentation_path: str | os.PathLike = None
+        self, slide_path: str | os.PathLike
     ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
         """
         Extracts tiles from a whole-slide image.
@@ -66,29 +70,58 @@ class Preprocessor:
 
         slide = OpenSlide(str(slide_path))
 
+        # The preprocessing level is the level at which the tiles are extracted. It cannot be higher than the highest level of the slide.
         preprocessing_level = min(
             self.config["preprocessing_level"], len(slide.level_dimensions) - 1
         )
 
-        if segmentation_path is None:  # default to Otsu thresholding
-            img = np.array(
-                slide.read_region(
-                    (0, 0),
-                    preprocessing_level,
-                    slide.level_dimensions[preprocessing_level],
-                )
-            )[:, :, :3]
-            segmentation = self.create_segmentation(img)
-        else:  # use user-supplied segmentation
-            raise NotImplementedError(
-                "Preprocessing based on user-supplied segmentation is not yet implemented."
+        # Load the whole-slide image at the preprocessing level
+        img = np.array(
+            slide.read_region(
+                (0, 0),
+                preprocessing_level,
+                slide.level_dimensions[preprocessing_level],
+            )
+        )[:, :, :3]
+
+        # create automatic segmentation and load all manual segmentations
+        segmentations = {}
+        segmentations["automatic"] = self.create_segmentation(img)
+        for segmentation_path_column_name in self.config[
+            "segmentation_path_column_name"
+        ]:
+            segmentation_path = self.manifest.loc[
+                Path(slide_path).stem, segmentation_path_column_name
+            ]
+            segmentations[segmentation_path_column_name] = self.load_segmentation(
+                segmentation_path
             )
 
+        # create union of all segmentations. This union is used for tessalation. Subsets of the extracted tiles are used later during classification.
+        union_of_all_segmentations = np.zeros(
+            (
+                slide.level_dimensions[self.config["preprocessing_level"]][1],
+                slide.level_dimensions[self.config["preprocessing_level"]][0],
+            ),
+            dtype=np.uint8,
+        )
+        for segmentation in segmentations.values():
+            union_of_all_segmentations = np.logical_or(
+                union_of_all_segmentations, segmentation[:, :, 0]
+            )
+
+        # Calculate the scaling factor between the preprocessing level and the extraction level
         scaling_factor = (
             slide.level_downsamples[preprocessing_level]
             / slide.level_downsamples[self.config["extraction_level"]]
         )
-        tile_coordinates = tessellate(segmentation, self.config, scaling_factor)
+
+        # Extract tiles from the whole-slide image based on the union of all segmentations
+        tile_coordinates = tessellate(
+            union_of_all_segmentations, self.config, scaling_factor
+        )
+
+        # Scale the tile coordiantes to the highest magnification level
         scaled_tile_coordinates = self.scale_tiles(
             tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
@@ -96,13 +129,47 @@ class Preprocessor:
         if not tile_coordinates:
             raise ValueError("No tiles were found.")
 
+        # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
         self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
         self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
         self.save_segmentation_visualization(
-            img, segmentation, tile_coordinates, scaling_factor, slide_path
+            img,
+            union_of_all_segmentations,
+            tile_coordinates,
+            scaling_factor,
+            slide_path,
         )
 
         return scaled_tile_coordinates
+
+    def load_segmentation(
+        self, slide: OpenSlide, segmentation_path: str | os.PathLike
+    ) -> np.ndarray:
+        with open(segmentation_path, "r") as f:
+            annotation = json.load(f)
+
+        segmentation = np.zeros(
+            (
+                slide.level_dimensions[self.config["preprocessing_level"]][1],
+                slide.level_dimensions[self.config["preprocessing_level"]][0],
+            ),
+            dtype=np.uint8,
+        )
+
+        for annotation_part in annotation["features"]:
+            if annotation_part["geometry"]["type"] == "Polygon":
+                coordinates = (
+                    np.array(annotation_part["geometry"]["coordinates"][0])
+                    / slide.level_downsamples[self.config["preprocessing_level"]]
+                ).astype(np.int32)
+
+                cv2.fillPoly(
+                    segmentation,
+                    [coordinates],
+                    1,
+                )
+
+            return segmentation[:, :, np.newaxis]
 
     def save_tile_coordinates(
         self,
