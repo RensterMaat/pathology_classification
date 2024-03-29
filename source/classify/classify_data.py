@@ -23,7 +23,7 @@ class PreextractedFeatureDataset(Dataset):
         case = self.data.iloc[ix]
 
         features_dir = get_features_dir_name(self.config)
-        features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
+        features_path = str(features_dir / (case["slide_id"] + ".pt"))
 
         x = torch.load(features_path).float()
         y = torch.tensor(case[self.targets]).float()

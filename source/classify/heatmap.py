@@ -19,13 +19,13 @@ class HeatmapGenerator:
         self.manifest = pd.read_csv(config["manifest_file_path"]).set_index("slide_id")
 
     def __call__(self, heatmap_vector_file_path: str) -> matplotlib.figure.Figure:
-        slide_id = Path(heatmap_vector_file_path).stem.replace("_cross_section_0", "")
+        slide_id = Path(heatmap_vector_file_path).stem
 
         slide_path = self.manifest.loc[slide_id, "slide_path"]
         slide = OpenSlide(slide_path)
 
         coordinates_path = get_patch_coordinates_dir_name(self.config) / (
-            slide_id + "_cross_section_0.json"
+            slide_id + ".json"
         )
         with open(coordinates_path, "r") as f:
             coordinates = np.array(json.load(f))[:, 1]
