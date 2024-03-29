@@ -40,11 +40,11 @@ def tessellate(
     Extracts tiles from a segmentation.
 
     Args:
-        segmentation: segmentation of the whole-slide image as (height, width, cross-section).
+        segmentation: segmentation of the whole-slide image as (height, width).
         scaling_factor: scaling factor between the extraction level and the highest magnification level.
 
     Returns:
-        tile_information: dictionary containing the location and shape of the tiles for each cross-section.
+        tile_information: list containing the location and shape of the tiles for each cross-section.
     """
 
     # combine all segmentations
