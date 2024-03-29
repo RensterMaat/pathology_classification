@@ -137,6 +137,7 @@ def main(config):
     ]
 
     for cross_section in tqdm(not_yet_processed):
+        print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$', cross_section)
         datamodule = ExtractionDataModule(cross_section.name, config)
         trainer.test(extractor, datamodule)
         extractor.save_features(cross_section.stem)
