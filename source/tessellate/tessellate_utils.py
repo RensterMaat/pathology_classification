@@ -1,6 +1,7 @@
 import torch
 import math
 import numpy as np
+import pandas as pd
 from torch.nn.functional import conv2d
 from typing import Optional
 
@@ -155,42 +156,44 @@ def tessellate(
         )
         top_margin -= vertical_shift
 
-    # crop the cross-section and prepare for convolution
-    crop = union_of_all_segmentations[
-        top_margin : top_margin + height_spanned_by_vertical_patches,
-        left_margin : left_margin + width_spanned_by_horizontal_patches,
-    ][None, None, ...].astype(np.float32)
-    # define average filter
-    filter = (torch.ones(patch_size) / np.prod(patch_size))[None, None, ...]
-    # convolve crop with filter
-    filtered_crop = conv2d(
-        torch.from_numpy(crop),
-        weight=filter,
-        bias=None,
-        stride=stride,
-        padding="valid",
-    )[0, 0, ...].numpy()
-    # find the region to extract tiles from
+    # loop through all segmentations and extract tiles
+    tile_information = pd.DataFrame(columns=list(segmentations.keys()))
+    tile_information.index.name = "origin_coordinates"
 
-    extraction_region = np.where(filtered_crop >= config["min_tissue_fraction"], 1, 0)
+    for segmentation_name, segmentation in segmentations.items():
+        # crop the segmentation and prepare for convolution
+        crop = segmentation[
+            top_margin : top_margin + height_spanned_by_vertical_patches,
+            left_margin : left_margin + width_spanned_by_horizontal_patches,
+        ][None, None, ...].astype(np.float32)
+        # define average filter
+        filter = (torch.ones(patch_size) / np.prod(patch_size))[None, None, ...]
+        # convolve crop with filter
+        filtered_crop = conv2d(
+            torch.from_numpy(crop),
+            weight=filter,
+            bias=None,
+            stride=stride,
+            padding="valid",
+        )[0, 0, ...].numpy()
+        # find the region to extract tiles from
 
-    # find the indices of the tiles that exceed the minimum faction of tissue
-    indices = np.nonzero(extraction_region)
-    # loop over indices to get all (top left) tile locations
-    positions = []
-    locations = []
-    for x, y in zip(indices[1], indices[0]):
-        positions.append((int(x), int(y)))
-        locations.append(
-            (
+        extraction_region = np.where(
+            filtered_crop >= config["min_tissue_fraction"], 1, 0
+        )
+
+        # find the indices of the tiles that exceed the minimum faction of tissue
+        indices = np.nonzero(extraction_region)
+
+        # loop over indices to get all (top left) tile locations
+        for x, y in zip(indices[1], indices[0]):
+            origin = (
                 int(left_margin + x * horizontal_stride),
                 int(top_margin + y * vertical_stride),
             )
-        )
-    # add information about the location and shape of the tiles
-    # to the dictionary
-    tile_information = [
-        (pos, loc, config["patch_dimensions"]) for pos, loc in zip(positions, locations)
-    ]
+
+            # add information about the location and shape of the tiles
+            # to the dataframe
+            tile_information.loc[origin, segmentation_name] = True
 
     return tile_information

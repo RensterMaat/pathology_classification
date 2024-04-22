@@ -112,8 +112,9 @@ class Preprocessor:
             tile_coordinates, slide.level_downsamples[preprocessing_level]
         )
 
-        if not tile_coordinates:
-            raise ValueError("No tiles were found.")
+        for segmentation_tile_coordinates in scaled_tile_coordinates.values():
+            if not segmentation_tile_coordinates:
+                raise ValueError("No tiles were found.")
 
         # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
         self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
@@ -169,11 +170,8 @@ class Preprocessor:
 
         """
         slide_name = Path(slide_path).stem
-
-        save_path = self.patch_coordinates_save_dir_path / (slide_name + ".json")
-
-        with open(save_path, "w") as f:
-            json.dump(tile_coordinates, f)
+        save_path = self.patch_coordinates_save_dir_path / (slide_name + ".csv")
+        tile_coordinates.to_csv(save_path)
 
     def save_tile_images(
         self,
@@ -328,11 +326,15 @@ def find_partially_processed_slides(
         with open(patch_coordinates_file_path) as f:
             patch_coordinates = json.load(f)
         expected_number_of_patches = len(patch_coordinates)
-        extracted_number_of_patches = len(
-            list(
-                (tile_images_save_dir_path / patch_coordinates_file_path.stem).iterdir()
-            )
+
+        extracted_patches_dir = (
+            tile_images_save_dir_path / patch_coordinates_file_path.stem
         )
+        if extracted_patches_dir.exists():
+            extracted_number_of_patches = len(list().iterdir())
+        else:
+            extracted_number_of_patches = 0
+
         if expected_number_of_patches != extracted_number_of_patches:
             partially_processed.append(slide)
 
