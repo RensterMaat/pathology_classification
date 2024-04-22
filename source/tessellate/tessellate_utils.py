@@ -157,7 +157,10 @@ def tessellate(
         top_margin -= vertical_shift
 
     # loop through all segmentations and extract tiles
-    tile_information = pd.DataFrame(columns=list(segmentations.keys()))
+    tile_information = pd.DataFrame(
+        columns=list(segmentations.keys()),
+        index=pd.MultiIndex(levels=[[], []], codes=[[], []], names=["x", "y"]),
+    )
     tile_information.index.name = "origin_coordinates"
 
     for segmentation_name, segmentation in segmentations.items():
@@ -195,5 +198,7 @@ def tessellate(
             # add information about the location and shape of the tiles
             # to the dataframe
             tile_information.loc[origin, segmentation_name] = True
+
+    tile_information = tile_information.fillna(False)
 
     return tile_information

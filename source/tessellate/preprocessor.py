@@ -108,24 +108,28 @@ class Preprocessor:
         tile_coordinates = tessellate(segmentations, self.config, scaling_factor)
 
         # Scale the tile coordiantes to the highest magnification level
-        scaled_tile_coordinates = self.scale_tiles(
-            tile_coordinates, slide.level_downsamples[preprocessing_level]
-        )
+        scaling_factor = slide.level_downsamples[preprocessing_level]
+        tile_coordinates.index = [
+            (int(x * scaling_factor), int(y * scaling_factor))
+            for x, y in tile_coordinates.index
+        ]
 
-        for segmentation_tile_coordinates in scaled_tile_coordinates.values():
-            if not segmentation_tile_coordinates:
-                raise ValueError("No tiles were found.")
+        for segmentation_name in segmentations.keys():
+            if not any(tile_coordinates[segmentation_name]):
+                raise ValueError(
+                    f"No tiles were found for segmentation {segmentation_name}."
+                )
 
         # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
-        self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
-        # self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
+        self.save_tile_coordinates(tile_coordinates, slide_path)
+        self.save_tile_images(tile_coordinates.index, slide, slide_path)
         self.save_segmentation_visualization(
             img,
             segmentations,
             slide_path,
         )
 
-        return scaled_tile_coordinates
+        return tile_coordinates
 
     def load_segmentation(
         self, slide: OpenSlide, segmentation_path: str | os.PathLike
@@ -193,18 +197,18 @@ class Preprocessor:
         save_dir.mkdir(exist_ok=True)
 
         if self.config["num_workers"] == 1:
-            coordinates = tqdm(
-                coordinates,
+            tile_coordinates = tqdm(
+                tile_coordinates,
                 desc=f"Saving patches for {slide_name}",
                 unit="patches",
                 leave=False,
             )
 
-        for (_, _), (x, y), (width, height) in tile_coordinates:
+        for x, y in tile_coordinates:
             tile = slide.read_region(
                 (x, y),
                 self.config["extraction_level"],
-                (width, height),
+                self.config["patch_dimensions"],
             )
             tile_rgb = Image.fromarray(np.array(tile)[:, :, :3])
             tile_rgb.save(save_dir / f"{x}_{y}.jpg")
@@ -250,34 +254,6 @@ class Preprocessor:
             self.segmentation_visualization_save_dir_path / f"{slide_name}.jpg"
         )
         fig.savefig(visualization_save_path)
-
-    def scale_tiles(
-        self,
-        tiles: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
-        scaling_factor: float,
-    ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
-        """
-        Scales the tiles from the extraction level to the highest magnification level.
-
-        Args:
-            tiles: dictionary containing the tiles for each cross-section.
-            scaling_factor: scaling factor between the extraction level and the highest magnification level.
-
-        Returns:
-            scaled_tiles: dictionary containing the scaled tiles for each cross-section.
-        """
-
-        scaled_tiles = []
-        for pos, loc, shape in tiles:
-            scaled_tiles.append(
-                (
-                    pos,
-                    (int(loc[0] * scaling_factor), int(loc[1] * scaling_factor)),
-                    shape,
-                ),
-            )
-
-        return scaled_tiles
 
     def create_segmentation(self, img):
         """
