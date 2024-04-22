@@ -109,10 +109,13 @@ class Preprocessor:
 
         # Scale the tile coordiantes to the highest magnification level
         scaling_factor = slide.level_downsamples[preprocessing_level]
-        tile_coordinates.index = [
-            (int(x * scaling_factor), int(y * scaling_factor))
-            for x, y in tile_coordinates.index
-        ]
+        tile_coordinates.index = pd.MultiIndex.from_tuples(
+            [
+                (int(x * scaling_factor), int(y * scaling_factor))
+                for x, y in tile_coordinates.index
+            ],
+            names=["x", "y"],
+        )
 
         for segmentation_name in segmentations.keys():
             if not any(tile_coordinates[segmentation_name]):
@@ -122,7 +125,7 @@ class Preprocessor:
 
         # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
         self.save_tile_coordinates(tile_coordinates, slide_path)
-        self.save_tile_images(tile_coordinates.index, slide, slide_path)
+        # self.save_tile_images(tile_coordinates.index, slide, slide_path)
         self.save_segmentation_visualization(
             img,
             segmentations,
@@ -175,7 +178,7 @@ class Preprocessor:
         """
         slide_name = Path(slide_path).stem
         save_path = self.patch_coordinates_save_dir_path / (slide_name + ".csv")
-        tile_coordinates.to_csv(save_path)
+        tile_coordinates.reset_index().to_csv(save_path, index=False)
 
     def save_tile_images(
         self,

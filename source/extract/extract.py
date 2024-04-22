@@ -132,7 +132,7 @@ def main(config):
 
     not_yet_processed = [
         slide
-        for slide in coordinates_dir.glob("*.json")
+        for slide in coordinates_dir.glob("*.csv")
         if not (extractor.save_dir / (slide.stem + ".pt")).exists()
     ]
 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/umcu.yaml",
+        default="config/test.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()

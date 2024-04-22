@@ -1,5 +1,5 @@
 import os
-import json
+import pandas as pd
 import torch
 import numpy as np
 import multiprocessing as mp
@@ -61,7 +61,7 @@ class CrossSectionDataset(Dataset):
             torch.Tensor: Patch of dimensions (3, patch_size, patch_size) and type float with values in [0, 1].
         """
 
-        x, y = self.patch_coordinates[ix][1]
+        x, y = self.patch_coordinates.iloc[ix][["x", "y"]]
         patch_file_name = f"{x}_{y}.jpg"
 
         patch_image = Image.open(self.patch_images_dir / patch_file_name)
@@ -86,8 +86,7 @@ class CrossSectionDataset(Dataset):
             patch_coordinates_dir / self.patch_coordinates_file_name
         )
 
-        with open(patch_coordinates_file_path) as f:
-            self.patch_coordinates = json.load(f)
+        self.patch_coordinates = pd.read_csv(patch_coordinates_file_path)
 
     def setup_patches(self):
         """
@@ -101,7 +100,7 @@ class CrossSectionDataset(Dataset):
             Path(self.config["output_dir"])
             / "tiles"
             / get_patch_coordinates_dir_name(self.config).name
-            / self.patch_coordinates_file_name.split(".json")[0]
+            / self.patch_coordinates_file_name.split(".csv")[0]
         )
 
 
