@@ -63,8 +63,8 @@ pip install .
 ### What you need to supply
 Create a manifest csv-file containing at least the columns "slide_id" and "slide_path". The slide_id column should contain a unique identifier for every whole-slide image. The slide_path column should be the absolute path to the corresponding slide. In addition, you can supply as many columns with data about these slides as desired. 
 ```
-slide_id, slide_path, binary_label_1, binary_label_2, characteristic_1
-example_1, /path/to/example_1.ndpi, 1, 0, lymph_node
+slide_id, slide_path, binary_label_1, binary_label_2, segmentation_path_1, characteristic_1
+example_1, /path/to/example_1.ndpi, 1, 0, /path/to/example_1_segmentation.geojson, lymph_node
 ...
 ```
 
@@ -97,10 +97,16 @@ In the supplied output directory, this will create the following directories and
       ...
 - patch_coordinates
   - extraction_level=1_patch_dimensions=[256,256]
-    - case_1.json
-    - case_2.json
+    - case_1.csv
+    - case_2.csv
+- segmentation_visualization
+  - extraction_level=1_patch_dimensions=[256,256]
+    - case_1.jpg
+    - case_2.jpg
 
-The patch_coordinates directory contains a .json-file for every case, with the relative location, origin and size of every extracted patch. These are used later for generating heatmaps. 
+The patch_coordinates directory contains a .csv-file for every case, with the origin (coordinates of upper left pixel) of every extracted patch, and whether or not a patch falls within a certain segmentation. These are used later to select the patches belonging to a certain segmentation and for generating heatmaps. 
+
+The segmentation_visualization directory shows the outline of the segmentations over the slide image. These can be used to check (especially) if the automatic segmentation is correct.
 
 ### Step 2: Extract features
 In this step, the patches from step 1 are summarized into feature vectors using pretrained feature extractor models. Running the command below will extract features for the model at the magnification level supplied in the configuration file. This is in contrast to step 1, where all magnification levels and patch sizes are extracted in one run. 

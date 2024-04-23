@@ -25,10 +25,13 @@ class HeatmapGenerator:
         slide = OpenSlide(slide_path)
 
         coordinates_path = get_patch_coordinates_dir_name(self.config) / (
-            slide_id + ".json"
+            slide_id + ".csv"
         )
-        with open(coordinates_path, "r") as f:
-            coordinates = np.array(json.load(f))[:, 1]
+
+        coordinates = pd.read_csv(coordinates_path)
+        coordinates = coordinates[coordinates[self.config["segmentation"]]][
+            ["x", "y"]
+        ].values
 
         heatmap_vector = torch.load(heatmap_vector_file_path, map_location="cpu")
 

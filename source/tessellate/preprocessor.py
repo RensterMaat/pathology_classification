@@ -125,7 +125,7 @@ class Preprocessor:
 
         # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
         self.save_tile_coordinates(tile_coordinates, slide_path)
-        # self.save_tile_images(tile_coordinates.index, slide, slide_path)
+        self.save_tile_images(tile_coordinates.index, slide, slide_path)
         self.save_segmentation_visualization(
             img,
             segmentations,
