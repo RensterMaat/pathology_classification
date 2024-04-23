@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="source",
     packages=find_packages(),
-    version="0.1.0",
+    version="0.4.0",
     install_requires=[
         "aiohttp==3.8.4",
         "aiosignal==1.3.1",

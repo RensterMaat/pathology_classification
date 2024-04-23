@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+import matplotlib.patches as mpatches
+from itertools import cycle
 from skimage.filters import threshold_otsu
 from skimage.measure import find_contours
 from skimage.morphology import remove_small_holes
@@ -97,20 +98,6 @@ class Preprocessor:
                 slide, segmentation_path
             )
 
-        # create union of all segmentations. This union is used for tessalation. Subsets of the extracted tiles are used later during classification.
-        union_of_all_segmentations = np.zeros(
-            (
-                slide.level_dimensions[self.config["preprocessing_level"]][1],
-                slide.level_dimensions[self.config["preprocessing_level"]][0],
-                1,
-            ),
-            dtype=np.uint8,
-        )
-        for segmentation in segmentations.values():
-            union_of_all_segmentations = np.logical_or(
-                union_of_all_segmentations, segmentation
-            )
-
         # Calculate the scaling factor between the preprocessing level and the extraction level
         scaling_factor = (
             slide.level_downsamples[preprocessing_level]
@@ -118,30 +105,34 @@ class Preprocessor:
         )
 
         # Extract tiles from the whole-slide image based on the union of all segmentations
-        tile_coordinates = tessellate(
-            union_of_all_segmentations, self.config, scaling_factor
-        )
+        tile_coordinates = tessellate(segmentations, self.config, scaling_factor)
 
         # Scale the tile coordiantes to the highest magnification level
-        scaled_tile_coordinates = self.scale_tiles(
-            tile_coordinates, slide.level_downsamples[preprocessing_level]
+        scaling_factor = slide.level_downsamples[preprocessing_level]
+        tile_coordinates.index = pd.MultiIndex.from_tuples(
+            [
+                (int(x * scaling_factor), int(y * scaling_factor))
+                for x, y in tile_coordinates.index
+            ],
+            names=["x", "y"],
         )
 
-        if not tile_coordinates:
-            raise ValueError("No tiles were found.")
+        for segmentation_name in segmentations.keys():
+            if not any(tile_coordinates[segmentation_name]):
+                raise ValueError(
+                    f"No tiles were found for segmentation {segmentation_name}."
+                )
 
         # Save coordinates, extracted images and visualization of the segmentations (automatic and manual)
-        self.save_tile_coordinates(scaled_tile_coordinates, slide_path)
-        self.save_tile_images(scaled_tile_coordinates, slide, slide_path)
+        self.save_tile_coordinates(tile_coordinates, slide_path)
+        self.save_tile_images(tile_coordinates.index, slide, slide_path)
         self.save_segmentation_visualization(
             img,
-            union_of_all_segmentations,
-            tile_coordinates,
-            scaling_factor,
+            segmentations,
             slide_path,
         )
 
-        return scaled_tile_coordinates
+        return tile_coordinates
 
     def load_segmentation(
         self, slide: OpenSlide, segmentation_path: str | os.PathLike
@@ -170,7 +161,7 @@ class Preprocessor:
                     1,
                 )
 
-            return segmentation[:, :, np.newaxis]
+            return segmentation
 
     def save_tile_coordinates(
         self,
@@ -185,16 +176,9 @@ class Preprocessor:
             slide_path: path to the whole-slide image.
 
         """
-        for cross_section in tile_coordinates:
-            slide_name = Path(slide_path).stem
-            cross_section_name = f"{slide_name}_cross_section_{cross_section}.json"
-
-            cross_section_save_path = (
-                self.patch_coordinates_save_dir_path / cross_section_name
-            )
-
-            with open(cross_section_save_path, "w") as f:
-                json.dump(tile_coordinates[cross_section], f)
+        slide_name = Path(slide_path).stem
+        save_path = self.patch_coordinates_save_dir_path / (slide_name + ".csv")
+        tile_coordinates.reset_index().to_csv(save_path, index=False)
 
     def save_tile_images(
         self,
@@ -210,36 +194,32 @@ class Preprocessor:
             slide: whole-slide image.
             slide_path: path to the whole-slide image.
         """
-        for cross_section, coordinates in tile_coordinates.items():
-            slide_name = Path(slide_path).stem
-            cross_section_name = f"{slide_name}_cross_section_{cross_section}"
+        slide_name = Path(slide_path).stem
 
-            cross_section_save_dir = self.tile_images_save_dir_path / cross_section_name
-            cross_section_save_dir.mkdir(exist_ok=True)
+        save_dir = self.tile_images_save_dir_path / slide_name
+        save_dir.mkdir(exist_ok=True)
 
-            if self.config["num_workers"] == 1:
-                coordinates = tqdm(
-                    coordinates,
-                    desc=f"Saving patches for {slide_name}",
-                    unit="patches",
-                    leave=False,
-                )
+        if self.config["num_workers"] == 1:
+            tile_coordinates = tqdm(
+                tile_coordinates,
+                desc=f"Saving patches for {slide_name}",
+                unit="patches",
+                leave=False,
+            )
 
-            for (_, _), (x, y), (width, height) in coordinates:
-                tile = slide.read_region(
-                    (x, y),
-                    self.config["extraction_level"],
-                    (width, height),
-                )
-                tile_rgb = Image.fromarray(np.array(tile)[:, :, :3])
-                tile_rgb.save(cross_section_save_dir / f"{x}_{y}.jpg")
+        for x, y in tile_coordinates:
+            tile = slide.read_region(
+                (x, y),
+                self.config["extraction_level"],
+                self.config["patch_dimensions"],
+            )
+            tile_rgb = Image.fromarray(np.array(tile)[:, :, :3])
+            tile_rgb.save(save_dir / f"{x}_{y}.jpg")
 
     def save_segmentation_visualization(
         self,
         image: np.ndarray,
-        segmentation: np.ndarray,
-        tile_coordinates: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
-        scaling_factor: float,
+        segmentations: np.ndarray,
         slide_path: str | os.PathLike,
     ) -> None:
         """
@@ -252,48 +232,31 @@ class Preprocessor:
         """
         slide_name = Path(slide_path).stem
 
-        contours = find_contours(segmentation[:, :, 0], 0.5)
+        colors = cycle(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 10))
         ax.imshow(image)
-        for contour in contours:
-            ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+
+        legend_patches = []
+        for name, segmentation in segmentations.items():
+            contours = find_contours(segmentation, 0.5)
+            color = next(colors)
+            for contour in contours:
+                polygon = plt.Polygon(
+                    np.flip(contour, axis=1), edgecolor=color, fill=None
+                )
+                ax.add_patch(polygon)
+
+            legend_patches.append(mpatches.Patch(color=color, label=name))
+        ax.legend(handles=legend_patches)
+
         ax.axis("off")
+        fig.show()
 
         visualization_save_path = (
             self.segmentation_visualization_save_dir_path / f"{slide_name}.jpg"
         )
         fig.savefig(visualization_save_path)
-
-    def scale_tiles(
-        self,
-        tiles: dict[int, list[tuple[tuple[int, int], tuple[int, int]]]],
-        scaling_factor: float,
-    ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
-        """
-        Scales the tiles from the extraction level to the highest magnification level.
-
-        Args:
-            tiles: dictionary containing the tiles for each cross-section.
-            scaling_factor: scaling factor between the extraction level and the highest magnification level.
-
-        Returns:
-            scaled_tiles: dictionary containing the scaled tiles for each cross-section.
-        """
-
-        scaled_tiles = {}
-        for cross_section in tiles:
-            scaled_tiles[cross_section] = []
-            for pos, loc, shape in tiles[cross_section]:
-                scaled_tiles[cross_section].append(
-                    (
-                        pos,
-                        (int(loc[0] * scaling_factor), int(loc[1] * scaling_factor)),
-                        shape,
-                    ),
-                )
-
-        return scaled_tiles
 
     def create_segmentation(self, img):
         """
@@ -316,12 +279,10 @@ class Preprocessor:
             segmentation, area_threshold=self.config["hole_area_threshold"]
         )
 
-        segmentation = segmentation[:, :, np.newaxis]
-
         return segmentation
 
 
-def find_partially_processed_cross_sections(
+def find_partially_processed_slides(
     slide_paths, patch_coordinates_save_dir_path, tile_images_save_dir_path
 ):
     """
@@ -339,16 +300,20 @@ def find_partially_processed_cross_sections(
         slide_paths, leave=False, desc="Checking for partially processed slides"
     ):
         patch_coordinates_file_path = patch_coordinates_save_dir_path / (
-            Path(slide).stem + "_cross_section_0.json"
+            Path(slide).stem + ".json"
         )
         with open(patch_coordinates_file_path) as f:
             patch_coordinates = json.load(f)
         expected_number_of_patches = len(patch_coordinates)
-        extracted_number_of_patches = len(
-            list(
-                (tile_images_save_dir_path / patch_coordinates_file_path.stem).iterdir()
-            )
+
+        extracted_patches_dir = (
+            tile_images_save_dir_path / patch_coordinates_file_path.stem
         )
+        if extracted_patches_dir.exists():
+            extracted_number_of_patches = len(list().iterdir())
+        else:
+            extracted_number_of_patches = 0
+
         if expected_number_of_patches != extracted_number_of_patches:
             partially_processed.append(slide)
 
@@ -370,7 +335,7 @@ def main(config):
         for slide_path in slide_paths
         if not (
             preprocessor.patch_coordinates_save_dir_path
-            / f"{Path(slide_path).stem}_cross_section_0.json"
+            / f"{Path(slide_path).stem}.json"
         ).exists()
     ]
 
@@ -378,7 +343,7 @@ def main(config):
     already_processed = [
         slide_path for slide_path in slide_paths if not slide_path in not_yet_processed
     ]
-    only_partially_processed = find_partially_processed_cross_sections(
+    only_partially_processed = find_partially_processed_slides(
         already_processed,
         preprocessor.patch_coordinates_save_dir_path,
         preprocessor.tile_images_save_dir_path,

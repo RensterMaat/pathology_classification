@@ -9,6 +9,7 @@ from source.utils.utils import (
 )
 from source.classify import train_and_test_loop
 
+
 def make_train_tune_split(config):
     config.update(config["sweep"]["general_settings"])
     config["mode"] = "sweep"
@@ -90,7 +91,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Conduct a hyperparameter sweep based on the supplied configuration file."
     )
-    parser.add_argument("--config", default="config/umcu.yaml")
+    parser.add_argument("--config", default="config/test.yaml")
 
     args = parser.parse_args()
     config = load_config(args.config)

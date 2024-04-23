@@ -120,7 +120,7 @@ def main(config):
     Returns:
         None
     """
-    config.update(config['extract'])
+    config.update(config["extract"])
 
     trainer = pl.Trainer(accelerator="gpu", enable_progress_bar=True)
     extractor = ExtractorFramework(config)
@@ -131,16 +131,15 @@ def main(config):
     coordinates_dir = get_patch_coordinates_dir_name(config)
 
     not_yet_processed = [
-        cross_section
-        for cross_section in coordinates_dir.glob("*.json")
-        if not (extractor.save_dir / (cross_section.stem + ".pt")).exists()
+        slide
+        for slide in coordinates_dir.glob("*.csv")
+        if not (extractor.save_dir / (slide.stem + ".pt")).exists()
     ]
 
-    for cross_section in tqdm(not_yet_processed):
-        print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$', cross_section)
-        datamodule = ExtractionDataModule(cross_section.name, config)
+    for slide in tqdm(not_yet_processed):
+        datamodule = ExtractionDataModule(slide.name, config)
         trainer.test(extractor, datamodule)
-        extractor.save_features(cross_section.stem)
+        extractor.save_features(slide.stem)
 
 
 if __name__ == "__main__":
@@ -148,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="config/umcu.yaml",
+        default="config/test.yaml",
         help="Path to the config file.",
     )
     args = parser.parse_args()

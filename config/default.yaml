@@ -23,7 +23,7 @@ extractor_models:
 
 # settings specifically for /source/tessellate/tessellate.py
 tessellate:
-  preprocessing_level: 8            # level at which the foreground is automatically segmented
+  preprocessing_level: 7            # level at which the foreground is automatically segmented
   median_filter_size: 10            # size of the median filter used to smooth the foreground mask
   hole_area_threshold: 1000         # size of the holes in the foreground mask to be filled
   min_tissue_fraction: 0.1          # minimum fraction of tissue in a patch for it to be included
@@ -74,28 +74,35 @@ sweep:
     n_layers: 2
 
   variable_hyperparameters:
+    segmentation: [
+      manual_segmentation,
+      automatic
+    ]
+
     level_and_extractor: [
-      extraction_level=1_extractor=patch_hipt, 
+      # extraction_level=1_extractor=patch_hipt, 
       extraction_level=1_extractor=region_hipt, 
-      extraction_level=1_extractor=resnet50_imagenet, 
-      extraction_level=3_extractor=resnet50_imagenet, 
-      extraction_level=5_extractor=resnet50_imagenet, 
-      # extraction_level=1_extractor=plip, 
-      extraction_level=3_extractor=plip, 
-      extraction_level=5_extractor=plip, 
+      # extraction_level=1_extractor=resnet50_imagenet, 
+      # extraction_level=3_extractor=resnet50_imagenet, 
+      # extraction_level=5_extractor=resnet50_imagenet, 
+      # # extraction_level=1_extractor=plip, 
+      # extraction_level=3_extractor=plip, 
+      # extraction_level=5_extractor=plip, 
     ]
 
 # settings specifically for /source/classify/evaluate.py
 evaluate:
   targets: [ # Multitarget learning is supported. The first target is used for model checkpointing, early stopping and stratification in cross-validation.
-    clark_binary,
+    primary,
   ]
 
   subgroups:
   # add subgroups here in the format: subgroup_name: [subgroups to include]. The subgroup names should match the column names in the manifest file. The subgroups to include should be the values in the column.
     primary_metastasis: [metastasis]
 
-  n_folds: 5
+  segmentation: manual_segmentation
+
+  n_folds: 2
   max_epochs: 100
   patience: 10
   num_workers: 1

@@ -1,6 +1,7 @@
 import torch
 import math
 import numpy as np
+import pandas as pd
 from torch.nn.functional import conv2d
 from typing import Optional
 
@@ -32,7 +33,7 @@ def get_bounding_box(array: np.ndarray) -> Optional[tuple[int, int, int, int]]:
 
 
 def tessellate(
-    segmentation: np.ndarray,
+    segmentations: dict,
     config: dict,
     scaling_factor: float = 1.0,
 ) -> dict[int, list[tuple[tuple[int, int], tuple[int, int]]]]:
@@ -40,27 +41,34 @@ def tessellate(
     Extracts tiles from a segmentation.
 
     Args:
-        segmentation: segmentation of the whole-slide image as (height, width, cross-section).
+        segmentation: segmentation of the whole-slide image as (height, width).
         scaling_factor: scaling factor between the extraction level and the highest magnification level.
 
     Returns:
-        tile_information: dictionary containing the location and shape of the tiles for each cross-section.
+        tile_information: list containing the location and shape of the tiles for each cross-section.
     """
+
+    # combine all segmentations
+    union_of_all_segmentations = np.zeros(
+        next(iter(segmentations.values())).shape,
+        dtype=np.uint8,
+    )
+    for segmentation in segmentations.values():
+        union_of_all_segmentations = np.logical_or(
+            union_of_all_segmentations, segmentation
+        )
+
     segmentation_width, segmentation_height = (
-        segmentation.shape[1],
-        segmentation.shape[0],
+        union_of_all_segmentations.shape[1],
+        union_of_all_segmentations.shape[0],
     )
 
     patch_size = [int(dim / scaling_factor) for dim in config["patch_dimensions"]]
     patch_width, patch_height = patch_size[1], patch_size[0]
 
-    if isinstance(segmentation, torch.Tensor):
-        segmentation = segmentation.numpy()
-    # check if the segmentation shape has three axes
-    if len(segmentation.shape) != 3:
-        raise ValueError(
-            "Argument for `segmentation` has an invalid shape (expected 3 axes).",
-        )
+    if isinstance(union_of_all_segmentations, torch.Tensor):
+        union_of_all_segmentations = union_of_all_segmentations.numpy()
+
     # check if the shape is not larger than the segmentation
     if patch_width > segmentation_width or patch_height > segmentation_height:
         raise ValueError(
@@ -80,82 +88,84 @@ def tessellate(
     max_vertical_patches = (segmentation_height - patch_height) // vertical_stride + 1
 
     # initialize dictionary to store tile location and shapes
-    tile_information = {}
 
-    for i, cross_section in enumerate(segmentation.transpose(2, 0, 1)):
-        bounding_box = get_bounding_box(cross_section)
+    bounding_box = get_bounding_box(union_of_all_segmentations)
 
-        if bounding_box is None:
-            continue
+    if bounding_box is None:
+        return None
 
-        # create a boundix box and calculate the width and height
-        (
-            top,
-            bottom,
-            left,
-            right,
-        ) = bounding_box
+    # create a boundix box and calculate the width and height
+    (
+        top,
+        bottom,
+        left,
+        right,
+    ) = bounding_box
 
-        bounding_box_width = right - left
-        bounding_box_height = bottom - top
+    bounding_box_width = right - left
+    bounding_box_height = bottom - top
 
-        # determine how many patches are needed in both dimensions to completely cover the bounding box
-        # two cases are possible:
-        # 1. the bounding box is smaller than the patch size -> default to one patch
-        # 2. the bounding box is larger than the patch size -> calculate the number of patches needed
-        horizontal_patches_needed_to_cover_bounding_box = (
-            max(math.ceil((bounding_box_width - patch_width) / horizontal_stride), 0)
-            + 1
-        )
-        vertical_patches_needed_to_cover_bounding_box = (
-            max(math.ceil((bounding_box_height - patch_height) / vertical_stride), 0)
-            + 1
-        )
+    # determine how many patches are needed in both dimensions to completely cover the bounding box
+    # two cases are possible:
+    # 1. the bounding box is smaller than the patch size -> default to one patch
+    # 2. the bounding box is larger than the patch size -> calculate the number of patches needed
+    horizontal_patches_needed_to_cover_bounding_box = (
+        max(math.ceil((bounding_box_width - patch_width) / horizontal_stride), 0) + 1
+    )
+    vertical_patches_needed_to_cover_bounding_box = (
+        max(math.ceil((bounding_box_height - patch_height) / vertical_stride), 0) + 1
+    )
 
-        # the number of patches should never be more than the maximum number of patches
-        # that fit inside the image
-        horizontal_patches = min(
-            horizontal_patches_needed_to_cover_bounding_box, max_horizontal_patches
-        )
-        vertical_patches = min(
-            vertical_patches_needed_to_cover_bounding_box, max_vertical_patches
-        )
+    # the number of patches should never be more than the maximum number of patches
+    # that fit inside the image
+    horizontal_patches = min(
+        horizontal_patches_needed_to_cover_bounding_box, max_horizontal_patches
+    )
+    vertical_patches = min(
+        vertical_patches_needed_to_cover_bounding_box, max_vertical_patches
+    )
 
-        # calculate the width and height spanned by the patches
-        width_spanned_by_horizontal_patches = (
-            horizontal_patches - 1
-        ) * horizontal_stride + patch_width
-        height_spanned_by_vertical_patches = (
-            vertical_patches - 1
-        ) * vertical_stride + patch_height
+    # calculate the width and height spanned by the patches
+    width_spanned_by_horizontal_patches = (
+        horizontal_patches - 1
+    ) * horizontal_stride + patch_width
+    height_spanned_by_vertical_patches = (
+        vertical_patches - 1
+    ) * vertical_stride + patch_height
 
-        # Align the center of the patches with the center of the bounding box
+    # Align the center of the patches with the center of the bounding box
+    horizontal_shift = (bounding_box_width - width_spanned_by_horizontal_patches) // 2
+    left_margin = left + horizontal_shift
+
+    vertical_shift = (bounding_box_height - height_spanned_by_vertical_patches) // 2
+    top_margin = top + vertical_shift
+
+    # Ensure that no patches fall outside the segmentation
+    if left_margin < 0:
+        left_margin = 0
+    if left_margin + width_spanned_by_horizontal_patches > segmentation_width:
         horizontal_shift = (
-            bounding_box_width - width_spanned_by_horizontal_patches
-        ) // 2
-        left_margin = left + horizontal_shift
+            left_margin + width_spanned_by_horizontal_patches - segmentation_width
+        )
+        left_margin -= horizontal_shift
+    if top_margin < 0:
+        top_margin = 0
+    if top_margin + height_spanned_by_vertical_patches > segmentation_height:
+        vertical_shift = (
+            top_margin + height_spanned_by_vertical_patches - segmentation_height
+        )
+        top_margin -= vertical_shift
 
-        vertical_shift = (bounding_box_height - height_spanned_by_vertical_patches) // 2
-        top_margin = top + vertical_shift
+    # loop through all segmentations and extract tiles
+    tile_information = pd.DataFrame(
+        columns=list(segmentations.keys()),
+        index=pd.MultiIndex(levels=[[], []], codes=[[], []], names=["x", "y"]),
+    )
+    tile_information.index.name = "origin_coordinates"
 
-        # Ensure that no patches fall outside the segmentation
-        if left_margin < 0:
-            left_margin = 0
-        if left_margin + width_spanned_by_horizontal_patches > segmentation_width:
-            horizontal_shift = (
-                left_margin + width_spanned_by_horizontal_patches - segmentation_width
-            )
-            left_margin -= horizontal_shift
-        if top_margin < 0:
-            top_margin = 0
-        if top_margin + height_spanned_by_vertical_patches > segmentation_height:
-            vertical_shift = (
-                top_margin + height_spanned_by_vertical_patches - segmentation_height
-            )
-            top_margin -= vertical_shift
-
-        # crop the cross-section and prepare for convolution
-        crop = cross_section[
+    for segmentation_name, segmentation in segmentations.items():
+        # crop the segmentation and prepare for convolution
+        crop = segmentation[
             top_margin : top_margin + height_spanned_by_vertical_patches,
             left_margin : left_margin + width_spanned_by_horizontal_patches,
         ][None, None, ...].astype(np.float32)
@@ -177,22 +187,18 @@ def tessellate(
 
         # find the indices of the tiles that exceed the minimum faction of tissue
         indices = np.nonzero(extraction_region)
+
         # loop over indices to get all (top left) tile locations
-        positions = []
-        locations = []
         for x, y in zip(indices[1], indices[0]):
-            positions.append((int(x), int(y)))
-            locations.append(
-                (
-                    int(left_margin + x * horizontal_stride),
-                    int(top_margin + y * vertical_stride),
-                )
+            origin = (
+                int(left_margin + x * horizontal_stride),
+                int(top_margin + y * vertical_stride),
             )
-        # add information about the location and shape of the tiles
-        # to the dictionary
-        tile_information[str(i)] = [
-            (pos, loc, config["patch_dimensions"])
-            for pos, loc in zip(positions, locations)
-        ]
+
+            # add information about the location and shape of the tiles
+            # to the dataframe
+            tile_information.loc[origin, segmentation_name] = True
+
+    tile_information = tile_information.fillna(False)
 
     return tile_information

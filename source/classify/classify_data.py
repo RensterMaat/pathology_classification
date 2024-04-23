@@ -4,7 +4,11 @@ import pandas as pd
 import pytorch_lightning as pl
 import multiprocessing as mp
 from torch.utils.data import DataLoader, Dataset
-from source.utils.utils import get_features_dir_name, get_cross_val_splits_dir_path
+from source.utils.utils import (
+    get_features_dir_name,
+    get_cross_val_splits_dir_path,
+    get_patch_coordinates_dir_name,
+)
 
 
 class PreextractedFeatureDataset(Dataset):
@@ -22,10 +26,17 @@ class PreextractedFeatureDataset(Dataset):
     def __getitem__(self, ix: int) -> "tuple[torch.Tensor, torch.Tensor, str]":
         case = self.data.iloc[ix]
 
-        features_dir = get_features_dir_name(self.config)
-        features_path = str(features_dir / (case["slide_id"] + "_cross_section_0.pt"))
+        patch_coordinates_dir = get_patch_coordinates_dir_name(self.config)
+        patch_coordinates_path = patch_coordinates_dir / (case["slide_id"] + ".csv")
+        patch_coordinates = pd.read_csv(patch_coordinates_path)
+        patches_to_use_given_segmentation = patch_coordinates[
+            self.config["segmentation"]
+        ]
 
-        x = torch.load(features_path).float()
+        features_dir = get_features_dir_name(self.config)
+        features_path = str(features_dir / (case["slide_id"] + ".pt"))
+
+        x = torch.load(features_path).float()[patches_to_use_given_segmentation]
         y = torch.tensor(case[self.targets]).float()
 
         return x, y, features_path
