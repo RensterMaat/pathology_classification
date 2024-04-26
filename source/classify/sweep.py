@@ -39,7 +39,10 @@ def make_train_tune_split(config):
 def make_wandb_sweep_config(config):
     sweep_config = {
         "method": config["method"],
-        "metric": {"name": "fold_0/val_auc", "goal": "maximize"},
+        "metric": {
+            "name": f"fold_0/{config['sweep']['general_settings']['targets'][0]}val_auc",
+            "goal": "maximize",
+        },
     }
 
     parameters = {"output_dir": {"values": [config["output_dir"]]}}

@@ -49,8 +49,6 @@ sweep:
     # add subgroups here in the format: subgroup_name: [subgroups to include]. The subgroup names should match the column names in the manifest file. The subgroups to include should be the values in the column.
       primary_metastasis: [metastasis]
 
-    segmentation: automatic
-
     max_epochs: 100
     patience: 10
     num_workers: 1
@@ -76,6 +74,10 @@ sweep:
     n_layers: 2
 
   variable_hyperparameters:
+    segmentation: [
+      automatic,
+      manual_segmentation
+    ]
     level_and_extractor: [
       # extraction_level=1_extractor=patch_hipt, 
       extraction_level=1_extractor=region_hipt, 
